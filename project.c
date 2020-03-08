@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <assert.h>
 #include "ppm_io.h"
+#include "imageManip.h"
 
 int main(int argc, char* argv[]) {
 
