@@ -11,6 +11,99 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
+
+
+
+void alter_exposure(Image * im, int index, double EV) {
+	// Modifying each color channel
+	unsigned char r = im->data[index].r * pow(2.0, EV);
+	unsigned char g = im->data[index].g * pow(2.0, EV);
+	unsigned char b = im->data[index].b * pow(2.0, EV);
+	// Checking if value exceeds maximum
+	if (EV > 0 ) {
+		if (r < im->data[index].r) {
+			r = 255;
+		}
+		if (g < im->data[index].g) {
+			g = 255;
+		}
+		if (b < im->data[index].b) {
+			b = 255;
+		}
+	}
+	// Updating data
+	im->data[index].r = r;
+	im->data[index].g = g;
+	im->data[index].b = b;
+}
+/**
+ *
+ **/
+Image * change_exposure(Image * im, double EV) {
+	// Copying image
+	Image * imOut = copy_image(im);
+	// Checking for success
+	if (imOut == NULL) {
+		return NULL;
+	}	
+	for (int i = 0; i < imOut->rows * imOut->cols; i++) {
+		alter_exposure(imOut, i, EV);
+	}
+  return imOut;
+}
+
+/**
+ *
+ **/
+Image * alpha_blend(Image * im1, Image * im2, double alpha) {
+
+  return NULL; // TODO remove stub
+}
+
+/**
+ *
+ **/
+Image * zoom_in(Image * im) {
+
+  return NULL; // TODO remove stub
+}
+
+/**
+ *
+ **/
+Image * zoom_out(Image * im) {
+
+  return NULL; // TODO remove stub
+}
+
+/**
+ *
+ **/
+Image * pointilism(Image * im) {
+
+  return NULL; // TODO remove stub
+}
+
+/**
+ *
+ *
+ **/
+
+Image * swirl(Image * im, int col, int row, int scale) {
+
+
+  return NULL; // TODO remove stub
+}
+
+/**
+ *
+ *
+ **/
+Image * blur(Image * im, double radius) {
+
+  return NULL; // TODO remove stub
+}
 
 
 /**
@@ -42,41 +135,15 @@ int process_input(int argc, char* argv[]) {
   // Closing input file
   fclose(input);
 
-  // Output image
-  Image * imOut;
-
   // Checking operation
-  int check = process_operation(argc, argv, im1, imOut);
+  int check = process_operation(argc, argv, im1);
   // Case: error detected
   if (check != 0) {
 	// Returning proper error value
 	// TODO free imOut and im1 and others if needed
 	return check;
   } 
-
-  // Outputting image
-  // Attemping to open output file
-  // TODO check if "b" is needed here
-  FILE* output = fopen(argv[2], "wb");
-  if (output == NULL) {
-	printf("Error: output file could not be opened for writing.\n");
-	// TODO free images
-	return 7;
-  }
-
-  // Writing output image 
-  int num_pixels_written = write_ppm(output, imOut);
-  // Checking for success
-  if (num_pixels_written != (imOut)->cols * (imOut)->rows) {
-	printf("Error: writing output failed.\n");
-	// TODO free images
-	return 7;
-  } 
-  // TODO do we need more file checks, i.e. ferror?
-
-  // Closing output file
-  fclose(output);
-  
+ 
   // TODO free images here
 
 return 0;
@@ -88,30 +155,44 @@ return 0;
  * Processes given operation and errors, if any.
  *
  **/
-int process_operation(int argc, char* argv[], Image * im1, Image * imOut) {
+int process_operation(int argc, char* argv[], Image * im1) {
 
   // Case: exposure function
   if (strcmp(argv[3], "exposure") == 0) {
 	// Checking for proper # of args
 	if (argc != 5) {
 		printf("Error: incorrect number of arguments for specified operation.\n");
+		destroy(im1);
 		return 5;
 	}
 	// Obtaining EV value and checking for validity
 	double EV;
 	if (sscanf(argv[4], "%lf", &EV) != 1) {
 		printf("Error: incorrect kind of arguments for specified opertaion.\n");
+		destroy(im1);
 		return 5;
 	}
 	// Checking for proper range of EV value
 	// TODO do we need epsilon value to compare doubles?
 	if (EV > 3 || EV < -3) {
 		printf("Error: invalid arguments for operation.\n ");
+		destroy(im1);
 		return 6;
 	}
 	
 	// TODO call exposure function  
-	imOut = change_exposure(im1, EV);
+	Image * imOut = change_exposure(im1, EV);
+	if (imOut == NULL) {
+		destroy(im1);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(imOut);
+	if (check != 0) {
+		return check; 
+	}
+	return 0;
   }
   // Case: blend function 
   else if (strcmp(argv[3], "blend") == 0) {
@@ -145,7 +226,7 @@ int process_operation(int argc, char* argv[], Image * im1, Image * imOut) {
 	}
 
 	// TODO calling blend function
-	imOut = alpha_blend(im1, im2, alpha);
+	//*imOut = alpha_blend(im1, im2, alpha);
 
   }
   // Case: zoom_in function 
@@ -157,7 +238,7 @@ int process_operation(int argc, char* argv[], Image * im1, Image * imOut) {
 	}
 
 	// TODO calling zoom_in function
-	imOut = zoom_in(im1);
+	//*imOut = zoom_in(im1);
 
   }
   // Case: zoom_out function 
@@ -168,7 +249,7 @@ int process_operation(int argc, char* argv[], Image * im1, Image * imOut) {
 		return 5;
 	}
 	// TODO calling zoom_out function
-	imOut = zoom_out(im1);
+	//*imOut = zoom_out(im1);
 
   } 
   // Case: pointilism function
@@ -179,7 +260,7 @@ int process_operation(int argc, char* argv[], Image * im1, Image * imOut) {
 		return 5;
 	}
 	// TODO calling pointilism function
-	imOut = pointilism(im1);
+	//*imOut = pointilism(im1);
 
   } 
   // Case: swirl function
@@ -216,7 +297,7 @@ int process_operation(int argc, char* argv[], Image * im1, Image * imOut) {
 		return 6;
 	} 
 	// TODO calling swirl function
-	imOut = swirl(im1, col, row, scale);
+	//*imOut = swirl(im1, col, row, scale);
 
   } 
   // Case: blur function
@@ -236,7 +317,7 @@ int process_operation(int argc, char* argv[], Image * im1, Image * imOut) {
 	// TODO check for valid radius/sigma
 	
 	// TODO calling blur function
-	imOut = blur(im1, radius);
+	//*imOut = blur(im1, radius);
  
   }
   // Case: invalid operation name
@@ -247,66 +328,5 @@ int process_operation(int argc, char* argv[], Image * im1, Image * imOut) {
 
 return 0;
 }
-
-/**
- *
- **/
-Image * change_exposure(Image * im, double EV) {
-
-return NULL; // TODO remove stub
-}
-
-/**
- *
- **/
-Image * alpha_blend(Image * im1, Image * im2, double alpha) {
-
-return NULL; // TODO remove stub
-}
-
-/**
- *
- **/
-Image * zoom_in(Image * im) {
-
-return NULL; // TODO remove stub
-}
-
-/**
- *
- **/
-Image * zoom_out(Image * im) {
-
-return NULL; // TODO remove stub
-}
-
-/**
- *
- **/
-Image * pointilism(Image * im) {
-
-return NULL; // TODO remove stub
-}
-
-/**
- *
- *
- **/
-
-Image * swirl(Image * im, int col, int row, int scale) {
-
-
-return NULL; // TODO remove stub
-}
-
-/**
- *
- *
- **/
-Image * blur(Image * im, double radius) {
-
-return NULL; // TODO remove stub
-}
-
 
 

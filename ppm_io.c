@@ -29,7 +29,7 @@ Image * read_ppm(FILE *fp) {
   fscanf(fp, "%c%c", &tag1, &tag2);
   // Checking for proper PPM tag
   if (!(tag1 == 'P' && tag2 == '6')) {
-	fprintf(stderr, "1Invalid PPM file.\n");
+	fprintf(stderr, "Error: invalid PPM file.\n");
 	return NULL;
   }
  
@@ -54,7 +54,7 @@ Image * read_ppm(FILE *fp) {
 
   // Checking for proper format
   if (row <= 0 || col <= 0 || colors != 255) {
-	fprintf(stderr, "2Invalid PPM file.\n");
+	fprintf(stderr, "Error: invalid PPM file.\n");
 	return NULL;
   }
   // Taking in last whitespace char before binary data
@@ -63,15 +63,28 @@ Image * read_ppm(FILE *fp) {
   // At this point, actual image data starts
   // Allocating space for image with correct dimensions
   Image * im = (Image *) malloc(sizeof(Image));
+  // Checking for success
+  if (im == NULL) {
+	fprintf(stderr, "Error: could not allocate data for image.\n");
+	return NULL;
+  }
+  // Inputting data
   im->rows = row;
   im->cols = col;
+  // Allocating space for Pixel array
   im->data = (Pixel *) malloc(sizeof(Pixel) * row * col);
-  
+  // Checking for success
+  if (im->data == NULL) {
+	fprintf(stderr, "Error: could not allocate data for image.\n");
+	free(im);
+	return NULL;
+  }
   // Reading image data
   int numRead = fread(im->data, sizeof(Pixel), row * col, fp);
   // Checking for proper reading 
   if (numRead != row * col) {
-	fprintf(stderr, "3Failed to read image data.\n");
+	fprintf(stderr, "Error: failed to read image data.\n");
+	destroy(im);
 	return NULL;
   }
 
@@ -105,3 +118,57 @@ int write_ppm(FILE *fp, const Image *im) {
   return num_pixels_written;
 }
 
+Image * copy_image(Image * im) {
+	// Allocating space for new Image
+	Image * imOut = (Image *) malloc(sizeof(Image));
+	// Checking for success
+	if (imOut == NULL) {
+		fprintf(stderr, "Error: could not allocate data for image.\n");
+		return NULL;
+	}
+	// Copying row and col data
+	imOut->rows = im->rows;
+	imOut->cols = im->cols;
+	// Allocating space for array of Pixels
+	imOut->data = (Pixel *) malloc(sizeof(Pixel) * imOut->rows * imOut->cols);
+	// Checking for success
+	if (imOut->data == NULL) {
+		fprintf(stderr, "Error: could not allocate data for image.\n");
+		free(imOut);
+		return NULL;
+	}
+	// Copying pixel data
+	for (int i = 0; i < im->rows * im->cols; i++) {
+		imOut->data[i] = im->data[i];
+	}
+	// Returning copied image
+	return imOut;
+
+}
+
+int output_image(Image * im, char* argv[]) {
+	// Attempting to open output file
+	FILE* output = fopen(argv[2], "wb");
+	if (output == NULL) {
+		fprintf(stderr, "Error: output file could nto be opened for writing.\n");
+		return 7;
+	}
+	// Writing output image
+	int num_pixels_written = write_ppm(output, im);
+	if (num_pixels_written != im->cols * im->rows) {
+		fprintf(stderr, "Error: writing output failed.\n");
+		fclose(output);
+		return 7;
+	}
+	
+	//TODO do we need more file checks here (ferror?)
+	fclose(output);
+	
+	return 0;
+}
+
+
+void destroy(Image * im) {
+	free(im->data);
+	free(im);
+}

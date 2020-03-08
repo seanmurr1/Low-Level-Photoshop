@@ -46,5 +46,9 @@ Image * read_ppm(FILE *fp);
  */
 int write_ppm(FILE *fp, const Image *im);
 
+Image * copy_image(Image * im);
 
+int output_image(Image * im, char* argv[]);
+
+void destroy(Image * im);
 #endif
