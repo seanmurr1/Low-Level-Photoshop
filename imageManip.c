@@ -91,12 +91,52 @@ Image * zoom_in(Image * im) {
 	return imOut;
 }
 
+void shrink_pixel(Image * im1, Image * imOut, int i) {
+	// Number of pixels per row of bigger image
+	int COL = im1->cols;
+	// Number of pixels per row of smaller image
+	int col = imOut->cols;
+	// Does im1 have an odd # of cols?
+	int odd;
+	if (COL % 2 != 0) {
+		odd = 1;
+	} else {
+		odd = 0;
+	}
+	// Obtaining four pixels
+	Pixel p1 = im1->data[2 * i + (i / col) * COL + (i / col) * odd];
+	Pixel p2 = im1->data[2 * i + 1 + (i / col) * COL + (i / col) * odd];
+	Pixel p3 = im1->data[2 * i + COL + (i / col) * COL + (i / col) * odd];
+	Pixel p4 = im1->data[2 * i + COL + 1 + (i / col) * COL + (i / col) * odd];
+	
+	// Calculating averages
+	Pixel shrunk;
+	shrunk.r = (p1.r + p2.r + p3.r + p4.r) / 4;
+	shrunk.g = (p1.g + p2.g + p3.g + p4.g) / 4;
+	shrunk.b = (p1.b + p2.b + p3.b + p4.b) / 4;
+
+	// Placing in shrunken pixel
+	imOut->data[i] = shrunk;
+}
+
+
 /**
  *
  **/
 Image * zoom_out(Image * im) {
-
-  return NULL; // TODO remove stub
+	// Creating new image
+	Image * imOut = create_image((im->cols / 2), (im->rows / 2));
+	// Checking for success
+	if (imOut == NULL) {
+		return NULL;
+	}
+	// Shrinking pixels
+	for (int i = 0; i < imOut->cols * imOut->rows; i++) {
+		// Creating shrunken pixel
+		shrink_pixel(im, imOut, i);
+	}
+	// Returning image
+	return imOut;
 }
 
 /**
@@ -281,7 +321,18 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 5;
 	}
 	// TODO calling zoom_out function
-	//*imOut = zoom_out(im1);
+	Image * imOut = zoom_out(im1);
+	if (imOut == NULL) {
+		destroy(im1);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(imOut);
+	if (check != 0) {
+		return check;
+	}
+	return 0;
 
   } 
   // Case: pointilism function
