@@ -61,12 +61,34 @@ Image * alpha_blend(Image * im1, Image * im2, double alpha) {
   return NULL; // TODO remove stub
 }
 
+
+void expand_pixel(Image * im1, Image * imOut, int index) {
+	// Number of pixels per row
+	int col = im1->cols;
+	// Expanding pixel to 2x2 square
+	imOut->data[2 * index + (index / col) * 2 * col] = im1->data[index];
+	imOut->data[2 * index + 1 + (index / col) * 2 * col] = im1->data[index];
+	imOut->data[2 * index + 2 * col + (index / col) * 2 * col] = im1->data[index];
+	imOut->data[2 * index + 2 * col + 1 + (index / col) * 2 * col] = im1->data[index];
+}
+
+
 /**
  *
  **/
 Image * zoom_in(Image * im) {
-
-  return NULL; // TODO remove stub
+	// Creating new image
+	Image * imOut = create_image((im->cols * 2), (im->rows * 2));
+	// Checking for success 
+	if (imOut == NULL) {
+		return NULL;
+	}
+	// Expanding pixels
+	for (int i = 0; i < im->cols * im->rows; i++) {
+		expand_pixel(im, imOut, i);
+	}
+ 	// Returning image
+	return imOut;
 }
 
 /**
@@ -118,8 +140,7 @@ int process_input(int argc, char* argv[]) {
 	return 1;
   }
 
-  // Attempting to open input file
-  // TODO check if "b" is needed here
+  // Attempting to open input file 
   FILE* input = fopen(argv[1], "rb");
   if (input == NULL) {
 	printf("Error: input file could not be opened.\n");
@@ -238,7 +259,18 @@ int process_operation(int argc, char* argv[], Image * im1) {
 	}
 
 	// TODO calling zoom_in function
-	//*imOut = zoom_in(im1);
+	Image * imOut = zoom_in(im1);
+	if (imOut == NULL) {
+		destroy(im1);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(imOut);
+	if (check != 0) {
+		return check;
+	}
+	return 0;
 
   }
   // Case: zoom_out function 
