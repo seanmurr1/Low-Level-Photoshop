@@ -24,6 +24,7 @@ Image * pointilism(Image * im);
 Image * swirl(Image * im, int col, int row, int scale);
 Image * blur(Image * im, double radius);
 void alter_exposure(Image * im, int index, double EV);
+int * generate_rand_num_arr(int max_value, int number_to_generate);
 
 
 

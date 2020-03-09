@@ -1,7 +1,7 @@
 // Sean Murray
-// smurra42
+// JHED: smurra42
 // Daniel Weber
-//
+// JHED: dweber11
 //
 // imageManip.c
 //
@@ -81,8 +81,31 @@ Image * zoom_out(Image * im) {
  *
  **/
 Image * pointilism(Image * im) {
-
+	int number_of_pixels = im->rows * im->cols;
+	int number_of_changed_pixels = number_of_pixels * .03;
+	int * center_pixel_indices = generate_rand_num_arr(number_of_pixels, number_of_changed_pixels);
+	
+	for (int i = 0; i < number_of_changed_pixels; i++) {
+		printf(" %d ", center_pixel_indices[i]);
+	}
   return NULL; // TODO remove stub
+}
+int * generate_rand_num_arr(int max_value, int number_to_generate) {
+	int * randum_num_arr = (int *) malloc(number_to_generate * sizeof(int));
+	char * is_used = (char *) calloc(max_value, sizeof(char)); /* flags */
+	int in, im;
+	im = 0;
+
+	for (in = max_value - number_to_generate; in < max_value && im < number_to_generate; ++in) {
+	int r = rand() % (in + 1); /* generate a random number 'r' */
+
+	if (is_used[r])
+		/* we already have 'r' */
+		r = in; /* use 'in' instead of the generated number */
+	randum_num_arr[im++] = r + 1; /* +1 since your range begins from 1 */
+	is_used[r] = 1;
+	}
+	return randum_num_arr;
 }
 
 /**
@@ -260,7 +283,7 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 5;
 	}
 	// TODO calling pointilism function
-	//*imOut = pointilism(im1);
+	Image* imOut = pointilism(im1);
 
   } 
   // Case: swirl function
