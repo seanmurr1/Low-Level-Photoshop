@@ -24,7 +24,7 @@ Image * pointilism(Image * im);
 Image * swirl(Image * im, int col, int row, int scale);
 Image * blur(Image * im, double radius);
 void alter_exposure(Image * im, int index, double EV);
-
-
+void expand_pixel(Image * im1, Image * imOut, int index);
+void shrink_pixel(Image * im1, Image * imOut, int i);
 
 #endif

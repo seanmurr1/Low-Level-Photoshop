@@ -61,20 +61,82 @@ Image * alpha_blend(Image * im1, Image * im2, double alpha) {
   return NULL; // TODO remove stub
 }
 
+
+void expand_pixel(Image * im1, Image * imOut, int index) {
+	// Number of pixels per row
+	int col = im1->cols;
+	// Expanding pixel to 2x2 square
+	imOut->data[2 * index + (index / col) * 2 * col] = im1->data[index];
+	imOut->data[2 * index + 1 + (index / col) * 2 * col] = im1->data[index];
+	imOut->data[2 * index + 2 * col + (index / col) * 2 * col] = im1->data[index];
+	imOut->data[2 * index + 2 * col + 1 + (index / col) * 2 * col] = im1->data[index];
+}
+
+
 /**
  *
  **/
 Image * zoom_in(Image * im) {
-
-  return NULL; // TODO remove stub
+	// Creating new image
+	Image * imOut = create_image((im->cols * 2), (im->rows * 2));
+	// Checking for success 
+	if (imOut == NULL) {
+		return NULL;
+	}
+	// Expanding pixels
+	for (int i = 0; i < im->cols * im->rows; i++) {
+		expand_pixel(im, imOut, i);
+	}
+ 	// Returning image
+	return imOut;
 }
+
+void shrink_pixel(Image * im1, Image * imOut, int i) {
+	// Number of pixels per row of bigger image
+	int COL = im1->cols;
+	// Number of pixels per row of smaller image
+	int col = imOut->cols;
+	// Does im1 have an odd # of cols?
+	int odd;
+	if (COL % 2 != 0) {
+		odd = 1;
+	} else {
+		odd = 0;
+	}
+	// Obtaining four pixels
+	Pixel p1 = im1->data[2 * i + (i / col) * COL + (i / col) * odd];
+	Pixel p2 = im1->data[2 * i + 1 + (i / col) * COL + (i / col) * odd];
+	Pixel p3 = im1->data[2 * i + COL + (i / col) * COL + (i / col) * odd];
+	Pixel p4 = im1->data[2 * i + COL + 1 + (i / col) * COL + (i / col) * odd];
+	
+	// Calculating averages
+	Pixel shrunk;
+	shrunk.r = (p1.r + p2.r + p3.r + p4.r) / 4;
+	shrunk.g = (p1.g + p2.g + p3.g + p4.g) / 4;
+	shrunk.b = (p1.b + p2.b + p3.b + p4.b) / 4;
+
+	// Placing in shrunken pixel
+	imOut->data[i] = shrunk;
+}
+
 
 /**
  *
  **/
 Image * zoom_out(Image * im) {
-
-  return NULL; // TODO remove stub
+	// Creating new image
+	Image * imOut = create_image((im->cols / 2), (im->rows / 2));
+	// Checking for success
+	if (imOut == NULL) {
+		return NULL;
+	}
+	// Shrinking pixels
+	for (int i = 0; i < imOut->cols * imOut->rows; i++) {
+		// Creating shrunken pixel
+		shrink_pixel(im, imOut, i);
+	}
+	// Returning image
+	return imOut;
 }
 
 /**
@@ -118,8 +180,7 @@ int process_input(int argc, char* argv[]) {
 	return 1;
   }
 
-  // Attempting to open input file
-  // TODO check if "b" is needed here
+  // Attempting to open input file 
   FILE* input = fopen(argv[1], "rb");
   if (input == NULL) {
 	printf("Error: input file could not be opened.\n");
@@ -238,7 +299,18 @@ int process_operation(int argc, char* argv[], Image * im1) {
 	}
 
 	// TODO calling zoom_in function
-	//*imOut = zoom_in(im1);
+	Image * imOut = zoom_in(im1);
+	if (imOut == NULL) {
+		destroy(im1);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(imOut);
+	if (check != 0) {
+		return check;
+	}
+	return 0;
 
   }
   // Case: zoom_out function 
@@ -249,7 +321,18 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 5;
 	}
 	// TODO calling zoom_out function
-	//*imOut = zoom_out(im1);
+	Image * imOut = zoom_out(im1);
+	if (imOut == NULL) {
+		destroy(im1);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(imOut);
+	if (check != 0) {
+		return check;
+	}
+	return 0;
 
   } 
   // Case: pointilism function

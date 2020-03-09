@@ -172,3 +172,26 @@ void destroy(Image * im) {
 	free(im->data);
 	free(im);
 }
+
+
+Image * create_image(int cols, int rows) {
+	// Creating space for image
+	Image * im = (Image *) malloc(sizeof(Image));
+	// Checking for success
+	if (im == NULL) {
+		fprintf(stderr, "Error: could not allocate memory for image.\n");
+		return NULL;
+	}
+	// Updating data
+	im->cols = cols;
+	im->rows = rows;
+	im->data = (Pixel *) malloc(sizeof(Pixel) * cols * rows);
+	// Checking for success
+	if (im->data == NULL) {
+		fprintf(stderr, "Error: could not allocate memory for image.\n");
+		free(im);
+		return NULL;
+	}
+	// Returning image
+	return im;
+}
