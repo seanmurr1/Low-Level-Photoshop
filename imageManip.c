@@ -147,15 +147,77 @@ Image * pointilism(Image * im) {
   return NULL; // TODO remove stub
 }
 
+int to_x_coord(int i, int num_cols) {
+	// Finding x coord
+	return i % num_cols;
+}
+
+int to_y_coord(int i, int num_cols) {
+	// Finding y coord
+	return i / num_cols;
+}
+
+int coord_to_index(int x, int y, int num_cols) {
+	// Calculating index
+	return (y * num_cols) + x;
+}
+
+double calc_alpha(int x, int y, int cX, int cY, int s) {
+	// Calculating alpha
+	return (double) (sqrt(pow(x - cX, 2.0) + pow(y - cY, 2.0)) / s);
+
+}
+
+void swirl_pixel(Image * imOut, Image * im, int cX, int cY, int s, int index) {
+	// Finding x and y coord of index value
+	int x = to_x_coord(index, im->cols);
+	int y = to_y_coord(index, im->cols);
+	// Calculating alpha
+	double alpha = calc_alpha(x, y, cX, cY, s);
+
+	// Calculating new coordinates
+	// x coord
+	int new_x = (int) ((x - cX) * cos(alpha) - (y - cY) * sin(alpha) + cX);
+	// Checking for valid value
+	if (new_x < 0) {
+		new_x += (im->cols - 1);
+	} else if (new_x > im->cols - 1) {
+		new_x -= (im->cols - 1);
+	}
+	// y coord
+	int new_y = (int) ((x - cX) * sin(alpha) + (y - cY) * cos(alpha) + cY);
+	// Checking for valid value
+	if (new_y < 0) {
+		new_y += (im->rows - 1);
+	} else if (new_y > im->rows - 1) {
+		new_y -= (im->rows - 1);
+	}
+
+	// Calculating new index
+	int new_index = coord_to_index(new_x, new_y, im->cols);
+
+	// Placing swirled pixel
+	imOut->data[index] = im->data[new_index];
+}
+
 /**
  *
  *
  **/
 
 Image * swirl(Image * im, int col, int row, int scale) {
-
-
-  return NULL; // TODO remove stub
+	// Creating new image
+	Image * imOut = create_image(im->cols, im->rows);
+	// Checking for success
+	if (imOut == NULL) {
+		return NULL;
+	} 
+	// Swirling pixels
+	for (int i = 0; i < im->cols * im->rows; i++) {
+		swirl_pixel(imOut, im, col, row, scale, i);
+	}
+	// Returning swirled image
+	return imOut;
 }
 
 /**
@@ -380,7 +442,19 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 6;
 	} 
 	// TODO calling swirl function
-	//*imOut = swirl(im1, col, row, scale);
+	Image * imOut = swirl(im1, col, row, scale);
+	if (imOut == NULL) {
+		destroy(im1);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(imOut);
+	if (check != 0) {
+		return check; 
+	}
+	return 0;
+
 
   } 
   // Case: blur function
