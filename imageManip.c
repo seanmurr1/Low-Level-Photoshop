@@ -58,6 +58,29 @@ Image * change_exposure(Image * im, double EV) {
  *
  **/
 Image * alpha_blend(Image * im1, Image * im2, double alpha) {
+	Image * imOut = (Image *) malloc(sizeof(Image));
+	int smaller_row = 0;
+	int smaller_col = 0;
+	if (im1->rows >= im2->rows) {
+		smaller_row = im2->rows;
+		imOut->rows = im1->rows;
+	} else {
+		smaller_row = im1->rows;
+		imOut->rows = im2->rows;
+	}
+	if (im1->cols >= im2->cols) {
+		smaller_col = im2->cols;
+		imOut->cols = im1->cols;
+	} else {
+		smaller_col = im1->cols;
+		imOut->cols = im2->cols;
+	}
+	imOut->data = (Pixel *) malloc(sizeof(Pixel) * imOut->rows * imOut->cols);
+	for (int curr_y = 0; curr_y < smaller_row; curr_y++) {
+		for (int curr_x = 0; curr_x < smaller_col; curr_x++) {
+		imOut->data[index_converter()]
+		}
+	}
 
   return NULL; // TODO remove stub
 }
@@ -109,7 +132,7 @@ Image * pointilism(Image * im) {
 			}
 		}
 	}
-  return im_out; // TODO remove stub
+  return im_out; 
 }
 
 int index_converter(int row, int column, int num_cols) {
