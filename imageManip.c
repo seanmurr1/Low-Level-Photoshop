@@ -84,40 +84,35 @@ Image * zoom_out(Image * im) {
 Image * pointilism(Image * im) {
 	Image * im_out = copy_image(im);
 	int number_of_pixels = im_out->rows * im_out->cols;
-	int number_of_changed_pixels = number_of_pixels * .03;
-	int * center_pixel_indices = generate_rand_num_arr(number_of_pixels, number_of_changed_pixels);
-	for (int curr_pixel = 0; curr_pixel < number_of_changed_pixels; curr_pixel++) {
-		int radius = rand() % 5 + 1;
-		for (int j = 1; j <= radius; j++) {
-			if((center_pixel_indices[curr_pixel] + j > number_of_pixels) || (center_pixel_indices[curr_pixel] - j < 0)) {
-				return im_out;
+	int number_pixels_to_change = number_of_pixels * .03;
+	for (int i = 0; i < number_pixels_to_change; i++) {
+		int curr_x = rand() % im_out->cols;
+		int curr_y = rand() % im_out->rows;
+		int curr_radius = rand() % 5 + 1;
+		for (int curr_col = curr_x - curr_radius; curr_col <= curr_x + curr_radius; curr_col++) {
+			if (curr_col < 0) {
+				continue;
 			}
-			(im_out->data[center_pixel_indices[curr_pixel] + j]) = im_out->data[center_pixel_indices[curr_pixel]];
-			im_out->data[center_pixel_indices[curr_pixel] - j] = im_out->data[center_pixel_indices[curr_pixel]];
+			else if (curr_col > im_out->cols) {
+				break;
+			}
+			for(int curr_row = curr_y - curr_radius; curr_row <= curr_y + curr_radius; curr_row++) {
+				if (curr_row < 0) {
+				continue;
+				}
+				else if (curr_row > im_out->rows) {
+					break;
+				}
+				else if((pow(curr_col - curr_x, 2) + pow(curr_row - curr_y, 2)) <= pow(curr_radius, 2)) {
+					im_out->data[index_converter(curr_row, curr_col, im_out->cols)] = im_out->data[index_converter(curr_y, curr_x, im_out->cols)];
+				}
+			}
 		}
 	}
   return im_out; // TODO remove stub
 }
-int * generate_rand_num_arr(int max_value, int number_to_generate) {
-	int * randum_num_arr = (int *) malloc(number_to_generate * sizeof(int));
-	char * is_used = (char *) calloc(max_value, sizeof(char)); /* flags */
-	int in, im;
-	im = 0;
 
-	for (in = max_value - number_to_generate; in < max_value && im < number_to_generate; ++in) {
-	int r = rand() % (in + 1); /* generate a random number 'r' */
-
-	if (is_used[r])
-		/* we already have 'r' */
-		r = in; /* use 'in' instead of the generated number */
-	randum_num_arr[im++] = r + 1; /* +1 since your range begins from 1 */
-	is_used[r] = 1;
-	}
-	assert(im = number_to_generate);
-	free(is_used);
-	return randum_num_arr;
-}
-int row_col_ind_to_row_ind(int row, int column, int num_cols) {
+int index_converter(int row, int column, int num_cols) {
 	int row_only_index = row*num_cols + column;
 	return row_only_index;
 }
