@@ -12,6 +12,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
 
 
 
@@ -81,14 +82,21 @@ Image * zoom_out(Image * im) {
  *
  **/
 Image * pointilism(Image * im) {
-	int number_of_pixels = im->rows * im->cols;
+	Image * im_out = copy_image(im);
+	int number_of_pixels = im_out->rows * im_out->cols;
 	int number_of_changed_pixels = number_of_pixels * .03;
 	int * center_pixel_indices = generate_rand_num_arr(number_of_pixels, number_of_changed_pixels);
-	
-	for (int i = 0; i < number_of_changed_pixels; i++) {
-		printf(" %d ", center_pixel_indices[i]);
+	for (int curr_pixel = 0; curr_pixel < number_of_changed_pixels; curr_pixel++) {
+		int radius = rand() % 5 + 1;
+		for (int j = 1; j <= radius; j++) {
+			if((center_pixel_indices[curr_pixel] + j > number_of_pixels) || (center_pixel_indices[curr_pixel] - j < 0)) {
+				return im_out;
+			}
+			(im_out->data[center_pixel_indices[curr_pixel] + j]) = im_out->data[center_pixel_indices[curr_pixel]];
+			im_out->data[center_pixel_indices[curr_pixel] - j] = im_out->data[center_pixel_indices[curr_pixel]];
+		}
 	}
-  return NULL; // TODO remove stub
+  return im_out; // TODO remove stub
 }
 int * generate_rand_num_arr(int max_value, int number_to_generate) {
 	int * randum_num_arr = (int *) malloc(number_to_generate * sizeof(int));
@@ -105,7 +113,13 @@ int * generate_rand_num_arr(int max_value, int number_to_generate) {
 	randum_num_arr[im++] = r + 1; /* +1 since your range begins from 1 */
 	is_used[r] = 1;
 	}
+	assert(im = number_to_generate);
+	free(is_used);
 	return randum_num_arr;
+}
+int row_col_ind_to_row_ind(int row, int column, int num_cols) {
+	int row_only_index = row*num_cols + column;
+	return row_only_index;
 }
 
 /**
@@ -284,6 +298,17 @@ int process_operation(int argc, char* argv[], Image * im1) {
 	}
 	// TODO calling pointilism function
 	Image* imOut = pointilism(im1);
+	if (imOut == NULL) {
+		destroy(im1);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(imOut);
+	if (check != 0) {
+		return check; 
+	}
+	return 0;
 
   } 
   // Case: swirl function
