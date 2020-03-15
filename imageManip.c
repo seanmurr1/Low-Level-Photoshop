@@ -59,32 +59,60 @@ Image * change_exposure(Image * im, double EV) {
  **/
 Image * alpha_blend(Image * im1, Image * im2, double alpha) {
 	Image * imOut = (Image *) malloc(sizeof(Image));
-	int smaller_row = 0;
-	int smaller_col = 0;
+	Image * smaller_row_image;
+	Image * larger_row_image;
+	Image * smaller_col_image;
+	Image * larger_col_image;
 	if (im1->rows >= im2->rows) {
-		smaller_row = im2->rows;
+		smaller_row_image = im2;
+		larger_row_image = im1;
 		imOut->rows = im1->rows;
 	} else {
-		smaller_row = im1->rows;
+		smaller_row_image = im1;
+		larger_row_image = im2;
 		imOut->rows = im2->rows;
 	}
 	if (im1->cols >= im2->cols) {
-		smaller_col = im2->cols;
+		smaller_col_image = im2;
+		larger_col_image = im1;
 		imOut->cols = im1->cols;
 	} else {
-		smaller_col = im1->cols;
+		smaller_col_image = im1;
+		larger_col_image = im2;
 		imOut->cols = im2->cols;
 	}
+	assert(larger_col_image != smaller_col_image);
+	assert(larger_row_image != smaller_row_image);
 	imOut->data = (Pixel *) malloc(sizeof(Pixel) * imOut->rows * imOut->cols);
-	for (int curr_y = 0; curr_y < smaller_row; curr_y++) {
-		for (int curr_x = 0; curr_x < smaller_col; curr_x++) {
+	for (int i = 0; i < imOut->rows * imOut->cols; i++) {
+		imOut->data[i].r = 0;
+		imOut->data[i].g = 0;
+		imOut->data[i].b = 0;
+	}
+	for (int curr_y = 0; curr_y < smaller_row_image->rows; curr_y++) {
+		for (int curr_x = 0; curr_x < smaller_col_image->cols; curr_x++) {
 		imOut->data[index_converter(curr_y, curr_x, imOut->cols)].r = alpha * im1->data[index_converter(curr_y, curr_x, im1->cols)].r + ((1 - alpha) * im2->data[index_converter(curr_y, curr_x, im2->cols)].r);
 		imOut->data[index_converter(curr_y, curr_x, imOut->cols)].g = alpha * im1->data[index_converter(curr_y, curr_x, im1->cols)].g + ((1 - alpha) * im2->data[index_converter(curr_y, curr_x, im2->cols)].g);
 		imOut->data[index_converter(curr_y, curr_x, imOut->cols)].b = alpha * im1->data[index_converter(curr_y, curr_x, im1->cols)].b + ((1 - alpha) * im2->data[index_converter(curr_y, curr_x, im2->cols)].b);
 		}
 	}
-	if (smaller_row != imOut->rows) {
-		return imOut;
+	if (smaller_row_image->rows != imOut->rows) {
+		for (int curr_y = smaller_row_image->rows; curr_y < larger_row_image->rows; curr_y++) {
+			for (int curr_x = 0; curr_x < larger_row_image->cols; curr_x++) {
+				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].r = larger_row_image->data[index_converter(curr_y, curr_x, larger_row_image->cols)].r;
+				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].g = larger_row_image->data[index_converter(curr_y, curr_x, larger_row_image->cols)].g;
+				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].b = larger_row_image->data[index_converter(curr_y, curr_x, larger_row_image->cols)].b;
+			}
+		}
+	}
+	if (smaller_col_image->cols != imOut->cols) {
+		for (int curr_y = 0; curr_y < larger_col_image->rows; curr_y++) {
+			for (int curr_x = smaller_col_image->cols; curr_x < larger_col_image->cols; curr_x++) {
+				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].r = larger_col_image->data[index_converter(curr_y, curr_x, larger_col_image->cols)].r;
+				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].g = larger_col_image->data[index_converter(curr_y, curr_x, larger_col_image->cols)].g;
+				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].b = larger_col_image->data[index_converter(curr_y, curr_x, larger_col_image->cols)].b;
+			}
+		}
 	}
   return imOut; // TODO remove stub
 }
