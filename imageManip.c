@@ -78,11 +78,15 @@ Image * alpha_blend(Image * im1, Image * im2, double alpha) {
 	imOut->data = (Pixel *) malloc(sizeof(Pixel) * imOut->rows * imOut->cols);
 	for (int curr_y = 0; curr_y < smaller_row; curr_y++) {
 		for (int curr_x = 0; curr_x < smaller_col; curr_x++) {
-		imOut->data[index_converter()]
+		imOut->data[index_converter(curr_y, curr_x, imOut->cols)].r = alpha * im1->data[index_converter(curr_y, curr_x, im1->cols)].r + ((1 - alpha) * im2->data[index_converter(curr_y, curr_x, im2->cols)].r);
+		imOut->data[index_converter(curr_y, curr_x, imOut->cols)].g = alpha * im1->data[index_converter(curr_y, curr_x, im1->cols)].g + ((1 - alpha) * im2->data[index_converter(curr_y, curr_x, im2->cols)].g);
+		imOut->data[index_converter(curr_y, curr_x, imOut->cols)].b = alpha * im1->data[index_converter(curr_y, curr_x, im1->cols)].b + ((1 - alpha) * im2->data[index_converter(curr_y, curr_x, im2->cols)].b);
 		}
 	}
-
-  return NULL; // TODO remove stub
+	if (smaller_row != imOut->rows) {
+		return imOut;
+	}
+  return imOut; // TODO remove stub
 }
 
 /**
@@ -281,7 +285,20 @@ int process_operation(int argc, char* argv[], Image * im1) {
 	}
 
 	// TODO calling blend function
-	//*imOut = alpha_blend(im1, im2, alpha);
+	Image* imOut = alpha_blend(im1, im2, alpha);
+	if (imOut == NULL) {
+		destroy(im1);
+		destroy(im2);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(im2);
+	destroy(imOut);
+	if (check != 0) {
+		return check; 
+	}
+	return 0;
 
   }
   // Case: zoom_in function 
