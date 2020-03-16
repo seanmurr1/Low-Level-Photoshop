@@ -13,6 +13,7 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
+#define PI 3.14
 
 
 
@@ -188,11 +189,95 @@ Image * swirl(Image * im, int col, int row, int scale) {
  *
  **/
 Image * blur(Image * im, double radius) {
+	Image * imOut = copy_image(im);
+	double** general_blur_matrix = generate_gaussian_matrix(radius);
+	int matrix_size = radius / 0.1;
+	int matrix_offset = matrix_size / 2;
+	double** pixel_matrix = (double**) malloc(sizeof(double *) * matrix_size);
+	for (int i = 0; i < matrix_size; i++) {
+		pixel_matrix[i] = malloc(sizeof(double) * matrix_size);
+	}
+	for (int im_y = 0; im_y < im->rows; im_y++) {
+		for (int im_x = 0; im_x < im->cols; im_x++) {
+			//For Red Channel
+			for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
+				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
+					if(im_x - matrix_offset + pixel_x < 0 || im_x - matrix_offset + pixel_x >= im->cols || im_y - matrix_offset + pixel_y < 0 || im_y - matrix_offset + pixel_y >= im->rows) {
+						pixel_matrix[pixel_y][pixel_x] = -1;
+					} else {
+					pixel_matrix[pixel_y][pixel_x] = general_blur_matrix[pixel_y][pixel_x] * (im->data[index_converter(im_y - matrix_offset + pixel_y, im_x - matrix_offset + pixel_x, im->cols)].r);
+					}
+				}
+			}
+			imOut->data[index_converter(im_y, im_x, imOut->cols)].r = calc_blurry_pixel(pixel_matrix, matrix_size);
+			//For Green Channel
+			for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
+				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
+					if(im_x - matrix_offset + pixel_x < 0 || im_x - matrix_offset + pixel_x >= im->cols || im_y - matrix_offset + pixel_y < 0 || im_y - matrix_offset + pixel_y >= im->rows) {
+						pixel_matrix[pixel_y][pixel_x] = -1;
+					} else {
+					pixel_matrix[pixel_y][pixel_x] = general_blur_matrix[pixel_y][pixel_x] * (im->data[index_converter(im_y - matrix_offset + pixel_y, im_x - matrix_offset + pixel_x, im->cols)].g);
+					}
+				}
+			}
+			imOut->data[index_converter(im_y, im_x, imOut->cols)].g = calc_blurry_pixel(pixel_matrix, matrix_size);
 
-  return NULL; // TODO remove stub
+			//For Blue Channel
+			for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
+				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
+					if(im_x - matrix_offset + pixel_x < 0 || im_x - matrix_offset + pixel_x >= im->cols || im_y - matrix_offset + pixel_y < 0 || im_y - matrix_offset + pixel_y >= im->rows) {
+						pixel_matrix[pixel_y][pixel_x] = -1;
+					} else {
+					pixel_matrix[pixel_y][pixel_x] = general_blur_matrix[pixel_y][pixel_x] * (im->data[index_converter(im_y - matrix_offset + pixel_y, im_x - matrix_offset + pixel_x, im->cols)].b);
+					}
+				}
+			}
+			imOut->data[index_converter(im_y, im_x, imOut->cols)].b = calc_blurry_pixel(pixel_matrix, matrix_size);
+		}
+	}
+	
+	for (int i = 0; i < matrix_size; i++) {
+		free(general_blur_matrix[i]);
+	}
+	for (int i = 0; i < matrix_size; i++) {
+		free(pixel_matrix[i]);
+	}
+	free(general_blur_matrix);
+	free(pixel_matrix);
+  return imOut; 
 }
 
 
+double** generate_gaussian_matrix(double sigma) {
+	int size = sigma / 0.1;
+	double** guassian_matrix = (double**) malloc(sizeof(double *) * size);
+	for (int i = 0; i < size; i++) {
+		guassian_matrix[i] = malloc(sizeof(double) * size);
+	}
+	for (int y = 0; y < size; y++) {
+		for (int x = 0; x < size; x++) {
+			int dx = x - (size / 2);
+			int dy = y - (size / 2);
+			double g = (1.0 / (2.0 * PI * pow(sigma, 2))) * exp( -(pow(dx, 2) + pow(dy, 2)) / (2 * pow(sigma, 2)));
+			guassian_matrix[y][x] = g;
+		}
+	}
+	return guassian_matrix;
+}
+int calc_blurry_pixel(double** blur_matrix, int size) {
+	double sum = 0;
+	int counter = 0;
+	for (int y = 0; y < size; y++) {
+		for (int x = 0; x < size; x++) {
+			if (blur_matrix[y][x] >= 0) {
+				sum += blur_matrix[y][x];
+				counter += 1;
+			}
+		}
+	}
+	int color_value = sum / counter;
+	return color_value;
+}
 /**
  * Processes command-line arguments and handles errors. 
  *
@@ -428,7 +513,18 @@ int process_operation(int argc, char* argv[], Image * im1) {
 	// TODO check for valid radius/sigma
 	
 	// TODO calling blur function
-	//*imOut = blur(im1, radius);
+	Image* imOut = blur(im1, radius);
+	if (imOut == NULL) {
+		destroy(im1);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(imOut);
+	if (check != 0) {
+		return check; 
+	}
+	return 0;
  
   }
   // Case: invalid operation name
