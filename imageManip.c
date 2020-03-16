@@ -209,7 +209,15 @@ Image * blur(Image * im, double radius) {
 					}
 				}
 			}
-			imOut->data[index_converter(im_y, im_x, imOut->cols)].r = calc_blurry_pixel(pixel_matrix, matrix_size);
+			imOut->data[index_converter(im_y, im_x, imOut->cols)].r = calc_blurry_pixel(pixel_matrix, general_blur_matrix, matrix_size);
+			/*for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
+				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
+					printf("%f ", pixel_matrix[pixel_y][pixel_x]);
+				}
+				printf("\n\n");
+			}
+			printf("\n"); 
+			printf("\n %d \n", calc_blurry_pixel(pixel_matrix, matrix_size)); */
 			//For Green Channel
 			for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
 				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
@@ -220,7 +228,7 @@ Image * blur(Image * im, double radius) {
 					}
 				}
 			}
-			imOut->data[index_converter(im_y, im_x, imOut->cols)].g = calc_blurry_pixel(pixel_matrix, matrix_size);
+			imOut->data[index_converter(im_y, im_x, imOut->cols)].g = calc_blurry_pixel(pixel_matrix, general_blur_matrix, matrix_size);
 
 			//For Blue Channel
 			for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
@@ -232,10 +240,10 @@ Image * blur(Image * im, double radius) {
 					}
 				}
 			}
-			imOut->data[index_converter(im_y, im_x, imOut->cols)].b = calc_blurry_pixel(pixel_matrix, matrix_size);
+			imOut->data[index_converter(im_y, im_x, imOut->cols)].b = calc_blurry_pixel(pixel_matrix, general_blur_matrix, matrix_size);
 		}
 	}
-	
+
 	for (int i = 0; i < matrix_size; i++) {
 		free(general_blur_matrix[i]);
 	}
@@ -264,18 +272,20 @@ double** generate_gaussian_matrix(double sigma) {
 	}
 	return guassian_matrix;
 }
-int calc_blurry_pixel(double** blur_matrix, int size) {
+int calc_blurry_pixel(double** pixel_blur_matrix, double** general_blur_matrix, int size) {
 	double sum = 0;
-	int counter = 0;
+	double weight = 0;
 	for (int y = 0; y < size; y++) {
 		for (int x = 0; x < size; x++) {
-			if (blur_matrix[y][x] >= 0) {
-				sum += blur_matrix[y][x];
-				counter += 1;
+			if (pixel_blur_matrix[y][x] >= 0) {
+				sum += pixel_blur_matrix[y][x];
+				weight += general_blur_matrix[y][x];
 			}
 		}
 	}
-	int color_value = sum / counter;
+	//printf("sum: %f \n", sum);
+	//printf("counter: %f \n", counter);
+	int color_value = sum / weight;
 	return color_value;
 }
 /**

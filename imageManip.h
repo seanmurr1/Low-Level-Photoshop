@@ -26,7 +26,7 @@ Image * blur(Image * im, double radius);
 void alter_exposure(Image * im, int index, double EV);
 int index_converter(int row, int column, int num_cols);
 double** generate_gaussian_matrix(double sigma);
-int calc_blurry_pixel(double** blur_matrix, int size);
+int calc_blurry_pixel(double** blur_matrix, double** general_blur_matrix, int size);
 
 
 
