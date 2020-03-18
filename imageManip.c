@@ -179,20 +179,23 @@ void swirl_pixel(Image * imOut, Image * im, int cX, int cY, int s, int index) {
 	// x coord
 	int new_x = (int) ((x - cX) * cos(alpha) - (y - cY) * sin(alpha) + cX);
 	// Checking for valid value
-	if (new_x < 0) {
-		new_x += (im->cols - 1);
-	} else if (new_x > im->cols - 1) {
-		new_x -= (im->cols - 1);
-	}
+	// Case: pixel index is out of bounds: thus make pixel black
+	if (new_x < 0 || new_x > im->cols - 1) {
+		imOut->data[index].r = 0;
+		imOut->data[index].g = 0;
+		imOut->data[index].b = 0;
+		return;
+	} 
 	// y coord
 	int new_y = (int) ((x - cX) * sin(alpha) + (y - cY) * cos(alpha) + cY);
 	// Checking for valid value
-	if (new_y < 0) {
-		new_y += (im->rows - 1);
-	} else if (new_y > im->rows - 1) {
-		new_y -= (im->rows - 1);
-	}
-
+	// Case: pixel index is out of bounds: thus make pixel black
+	if (new_y < 0 || new_y > im->rows - 1) {
+		imOut->data[index].r = 0;
+		imOut->data[index].g = 0;
+		imOut->data[index].b = 0;
+		return;
+	} 
 	// Calculating new index
 	int new_index = coord_to_index(new_x, new_y, im->cols);
 
