@@ -1,5 +1,8 @@
 
-// __Add your name and JHED above__
+// Sean Murray
+// JHED: smurra42
+// Daniel Weber
+// JHED: dweber11
 // ppm_io.h
 // 601.220, Spring 2019
 // Starter code for midterm project - feel free to edit/add to this file
@@ -53,5 +56,8 @@ int output_image(Image * im, char* argv[]);
 void destroy(Image * im);
 
 Image * create_image(int cols, int rows);
+
+int process_input(int argc, char* argv[]);
+int process_operation(int argc, char* argv[], Image * im1);
 
 #endif
