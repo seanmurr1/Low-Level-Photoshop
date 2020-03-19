@@ -1,7 +1,7 @@
 // Sean Murray
-// smurra42
+// JHED: smurra42
 // Daniel Weber
-//
+// JHED: dweber11
 //
 // imageManip.c
 //
@@ -12,6 +12,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <assert.h>
+#define PI 3.14
 
 
 
@@ -57,8 +59,63 @@ Image * change_exposure(Image * im, double EV) {
  *
  **/
 Image * alpha_blend(Image * im1, Image * im2, double alpha) {
-
-  return NULL; // TODO remove stub
+	Image * imOut = (Image *) malloc(sizeof(Image));
+	Image * smaller_row_image;
+	Image * larger_row_image;
+	Image * smaller_col_image;
+	Image * larger_col_image;
+	if (im1->rows >= im2->rows) {
+		smaller_row_image = im2;
+		larger_row_image = im1;
+		imOut->rows = im1->rows;
+	} else {
+		smaller_row_image = im1;
+		larger_row_image = im2;
+		imOut->rows = im2->rows;
+	}
+	if (im1->cols >= im2->cols) {
+		smaller_col_image = im2;
+		larger_col_image = im1;
+		imOut->cols = im1->cols;
+	} else {
+		smaller_col_image = im1;
+		larger_col_image = im2;
+		imOut->cols = im2->cols;
+	}
+	assert(larger_col_image != smaller_col_image);
+	assert(larger_row_image != smaller_row_image);
+	imOut->data = (Pixel *) malloc(sizeof(Pixel) * imOut->rows * imOut->cols);
+	for (int i = 0; i < imOut->rows * imOut->cols; i++) {
+		imOut->data[i].r = 0;
+		imOut->data[i].g = 0;
+		imOut->data[i].b = 0;
+	}
+	for (int curr_y = 0; curr_y < smaller_row_image->rows; curr_y++) {
+		for (int curr_x = 0; curr_x < smaller_col_image->cols; curr_x++) {
+		imOut->data[index_converter(curr_y, curr_x, imOut->cols)].r = alpha * im1->data[index_converter(curr_y, curr_x, im1->cols)].r + ((1 - alpha) * im2->data[index_converter(curr_y, curr_x, im2->cols)].r);
+		imOut->data[index_converter(curr_y, curr_x, imOut->cols)].g = alpha * im1->data[index_converter(curr_y, curr_x, im1->cols)].g + ((1 - alpha) * im2->data[index_converter(curr_y, curr_x, im2->cols)].g);
+		imOut->data[index_converter(curr_y, curr_x, imOut->cols)].b = alpha * im1->data[index_converter(curr_y, curr_x, im1->cols)].b + ((1 - alpha) * im2->data[index_converter(curr_y, curr_x, im2->cols)].b);
+		}
+	}
+	if (smaller_row_image->rows != imOut->rows) {
+		for (int curr_y = smaller_row_image->rows; curr_y < larger_row_image->rows; curr_y++) {
+			for (int curr_x = 0; curr_x < larger_row_image->cols; curr_x++) {
+				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].r = larger_row_image->data[index_converter(curr_y, curr_x, larger_row_image->cols)].r;
+				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].g = larger_row_image->data[index_converter(curr_y, curr_x, larger_row_image->cols)].g;
+				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].b = larger_row_image->data[index_converter(curr_y, curr_x, larger_row_image->cols)].b;
+			}
+		}
+	}
+	if (smaller_col_image->cols != imOut->cols) {
+		for (int curr_y = 0; curr_y < larger_col_image->rows; curr_y++) {
+			for (int curr_x = smaller_col_image->cols; curr_x < larger_col_image->cols; curr_x++) {
+				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].r = larger_col_image->data[index_converter(curr_y, curr_x, larger_col_image->cols)].r;
+				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].g = larger_col_image->data[index_converter(curr_y, curr_x, larger_col_image->cols)].g;
+				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].b = larger_col_image->data[index_converter(curr_y, curr_x, larger_col_image->cols)].b;
+			}
+		}
+	}
+  return imOut; // TODO remove stub
 }
 
 
@@ -143,8 +200,39 @@ Image * zoom_out(Image * im) {
  *
  **/
 Image * pointilism(Image * im) {
+	Image * im_out = copy_image(im);
+	int number_of_pixels = im_out->rows * im_out->cols;
+	int number_pixels_to_change = number_of_pixels * .03;
+	for (int i = 0; i < number_pixels_to_change; i++) {
+		int curr_x = rand() % im_out->cols;
+		int curr_y = rand() % im_out->rows;
+		int curr_radius = rand() % 5 + 1;
+		for (int curr_col = curr_x - curr_radius; curr_col <= curr_x + curr_radius; curr_col++) {
+			if (curr_col < 0) {
+				continue;
+			}
+			else if (curr_col > im_out->cols) {
+				break;
+			}
+			for(int curr_row = curr_y - curr_radius; curr_row <= curr_y + curr_radius; curr_row++) {
+				if (curr_row < 0) {
+				continue;
+				}
+				else if (curr_row > im_out->rows) {
+					break;
+				}
+				else if((pow(curr_col - curr_x, 2) + pow(curr_row - curr_y, 2)) <= pow(curr_radius, 2)) {
+					im_out->data[index_converter(curr_row, curr_col, im_out->cols)] = im_out->data[index_converter(curr_y, curr_x, im_out->cols)];
+				}
+			}
+		}
+	}
+  return im_out; 
+}
 
-  return NULL; // TODO remove stub
+int index_converter(int row, int column, int num_cols) {
+	int row_only_index = row*num_cols + column;
+	return row_only_index;
 }
 
 int to_x_coord(int i, int num_cols) {
@@ -228,11 +316,105 @@ Image * swirl(Image * im, int col, int row, int scale) {
  *
  **/
 Image * blur(Image * im, double radius) {
+	Image * imOut = copy_image(im);
+	double** general_blur_matrix = generate_gaussian_matrix(radius);
+	int matrix_size = radius / 0.1;
+	int matrix_offset = matrix_size / 2;
+	double** pixel_matrix = (double**) malloc(sizeof(double *) * matrix_size);
+	for (int i = 0; i < matrix_size; i++) {
+		pixel_matrix[i] = malloc(sizeof(double) * matrix_size);
+	}
+	for (int im_y = 0; im_y < im->rows; im_y++) {
+		for (int im_x = 0; im_x < im->cols; im_x++) {
+			//For Red Channel
+			for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
+				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
+					if(im_x - matrix_offset + pixel_x < 0 || im_x - matrix_offset + pixel_x >= im->cols || im_y - matrix_offset + pixel_y < 0 || im_y - matrix_offset + pixel_y >= im->rows) {
+						pixel_matrix[pixel_y][pixel_x] = -1;
+					} else {
+					pixel_matrix[pixel_y][pixel_x] = general_blur_matrix[pixel_y][pixel_x] * (im->data[index_converter(im_y - matrix_offset + pixel_y, im_x - matrix_offset + pixel_x, im->cols)].r);
+					}
+				}
+			}
+			imOut->data[index_converter(im_y, im_x, imOut->cols)].r = calc_blurry_pixel(pixel_matrix, general_blur_matrix, matrix_size);
+			/*for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
+				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
+					printf("%f ", pixel_matrix[pixel_y][pixel_x]);
+				}
+				printf("\n\n");
+			}
+			printf("\n"); 
+			printf("\n %d \n", calc_blurry_pixel(pixel_matrix, matrix_size)); */
+			//For Green Channel
+			for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
+				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
+					if(im_x - matrix_offset + pixel_x < 0 || im_x - matrix_offset + pixel_x >= im->cols || im_y - matrix_offset + pixel_y < 0 || im_y - matrix_offset + pixel_y >= im->rows) {
+						pixel_matrix[pixel_y][pixel_x] = -1;
+					} else {
+					pixel_matrix[pixel_y][pixel_x] = general_blur_matrix[pixel_y][pixel_x] * (im->data[index_converter(im_y - matrix_offset + pixel_y, im_x - matrix_offset + pixel_x, im->cols)].g);
+					}
+				}
+			}
+			imOut->data[index_converter(im_y, im_x, imOut->cols)].g = calc_blurry_pixel(pixel_matrix, general_blur_matrix, matrix_size);
 
-  return NULL; // TODO remove stub
+			//For Blue Channel
+			for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
+				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
+					if(im_x - matrix_offset + pixel_x < 0 || im_x - matrix_offset + pixel_x >= im->cols || im_y - matrix_offset + pixel_y < 0 || im_y - matrix_offset + pixel_y >= im->rows) {
+						pixel_matrix[pixel_y][pixel_x] = -1;
+					} else {
+					pixel_matrix[pixel_y][pixel_x] = general_blur_matrix[pixel_y][pixel_x] * (im->data[index_converter(im_y - matrix_offset + pixel_y, im_x - matrix_offset + pixel_x, im->cols)].b);
+					}
+				}
+			}
+			imOut->data[index_converter(im_y, im_x, imOut->cols)].b = calc_blurry_pixel(pixel_matrix, general_blur_matrix, matrix_size);
+		}
+	}
+
+	for (int i = 0; i < matrix_size; i++) {
+		free(general_blur_matrix[i]);
+	}
+	for (int i = 0; i < matrix_size; i++) {
+		free(pixel_matrix[i]);
+	}
+	free(general_blur_matrix);
+	free(pixel_matrix);
+  return imOut; 
 }
 
 
+double** generate_gaussian_matrix(double sigma) {
+	int size = sigma / 0.1;
+	double** guassian_matrix = (double**) malloc(sizeof(double *) * size);
+	for (int i = 0; i < size; i++) {
+		guassian_matrix[i] = malloc(sizeof(double) * size);
+	}
+	for (int y = 0; y < size; y++) {
+		for (int x = 0; x < size; x++) {
+			int dx = x - (size / 2);
+			int dy = y - (size / 2);
+			double g = (1.0 / (2.0 * PI * pow(sigma, 2))) * exp( -(pow(dx, 2) + pow(dy, 2)) / (2 * pow(sigma, 2)));
+			guassian_matrix[y][x] = g;
+		}
+	}
+	return guassian_matrix;
+}
+int calc_blurry_pixel(double** pixel_blur_matrix, double** general_blur_matrix, int size) {
+	double sum = 0;
+	double weight = 0;
+	for (int y = 0; y < size; y++) {
+		for (int x = 0; x < size; x++) {
+			if (pixel_blur_matrix[y][x] >= 0) {
+				sum += pixel_blur_matrix[y][x];
+				weight += general_blur_matrix[y][x];
+			}
+		}
+	}
+	//printf("sum: %f \n", sum);
+	//printf("counter: %f \n", counter);
+	int color_value = sum / weight;
+	return color_value;
+}
 /**
  * Processes command-line arguments and handles errors. 
  *
@@ -352,7 +534,20 @@ int process_operation(int argc, char* argv[], Image * im1) {
 	}
 
 	// TODO calling blend function
-	//*imOut = alpha_blend(im1, im2, alpha);
+	Image* imOut = alpha_blend(im1, im2, alpha);
+	if (imOut == NULL) {
+		destroy(im1);
+		destroy(im2);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(im2);
+	destroy(imOut);
+	if (check != 0) {
+		return check; 
+	}
+	return 0;
 
   }
   // Case: zoom_in function 
@@ -408,7 +603,18 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 5;
 	}
 	// TODO calling pointilism function
-	//*imOut = pointilism(im1);
+	Image* imOut = pointilism(im1);
+	if (imOut == NULL) {
+		destroy(im1);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(imOut);
+	if (check != 0) {
+		return check; 
+	}
+	return 0;
 
   } 
   // Case: swirl function
@@ -477,7 +683,18 @@ int process_operation(int argc, char* argv[], Image * im1) {
 	// TODO check for valid radius/sigma
 	
 	// TODO calling blur function
-	//*imOut = blur(im1, radius);
+	Image* imOut = blur(im1, radius);
+	if (imOut == NULL) {
+		destroy(im1);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(imOut);
+	if (check != 0) {
+		return check; 
+	}
+	return 0;
  
   }
   // Case: invalid operation name
