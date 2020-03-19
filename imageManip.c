@@ -212,6 +212,7 @@ Image * pointilism(Image * im) {
 		int curr_x = rand() % im->cols;
 		int curr_y = rand() % im->rows;
 		int curr_radius = rand() % 5 + 1;
+		//Checks diameter sized square around each central pixel
 		for (int curr_col = curr_x - curr_radius; curr_col <= curr_x + curr_radius; curr_col++) {
 			//Checks if x coord is out of bounds on either side
 			if (curr_col < 0) {
