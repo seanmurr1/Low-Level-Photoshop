@@ -51,4 +51,7 @@ Image * copy_image(Image * im);
 int output_image(Image * im, char* argv[]);
 
 void destroy(Image * im);
+
+Image * create_image(int cols, int rows);
+
 #endif

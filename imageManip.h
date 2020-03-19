@@ -27,6 +27,13 @@ void alter_exposure(Image * im, int index, double EV);
 int index_converter(int row, int column, int num_cols);
 double** generate_gaussian_matrix(double sigma);
 int calc_blurry_pixel(double** blur_matrix, double** general_blur_matrix, int size);
+void expand_pixel(Image * im1, Image * imOut, int index);
+void shrink_pixel(Image * im1, Image * imOut, int i);
+int to_x_coord(int i, int num_cols);
+int to_y_coord(int i, int num_cols);
+int coord_to_index(int x, int y, int num_cols);
+double calc_alpha(int x, int y, int cX, int cY, int s);
+void swirl_pixel(Image * imOut, Image * im, int cX, int cY, int s, int index);
 
 
 

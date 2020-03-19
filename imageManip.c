@@ -118,20 +118,82 @@ Image * alpha_blend(Image * im1, Image * im2, double alpha) {
   return imOut; // TODO remove stub
 }
 
+
+void expand_pixel(Image * im1, Image * imOut, int index) {
+	// Number of pixels per row
+	int col = im1->cols;
+	// Expanding pixel to 2x2 square
+	imOut->data[2 * index + (index / col) * 2 * col] = im1->data[index];
+	imOut->data[2 * index + 1 + (index / col) * 2 * col] = im1->data[index];
+	imOut->data[2 * index + 2 * col + (index / col) * 2 * col] = im1->data[index];
+	imOut->data[2 * index + 2 * col + 1 + (index / col) * 2 * col] = im1->data[index];
+}
+
+
 /**
  *
  **/
 Image * zoom_in(Image * im) {
-
-  return NULL; // TODO remove stub
+	// Creating new image
+	Image * imOut = create_image((im->cols * 2), (im->rows * 2));
+	// Checking for success 
+	if (imOut == NULL) {
+		return NULL;
+	}
+	// Expanding pixels
+	for (int i = 0; i < im->cols * im->rows; i++) {
+		expand_pixel(im, imOut, i);
+	}
+ 	// Returning image
+	return imOut;
 }
+
+void shrink_pixel(Image * im1, Image * imOut, int i) {
+	// Number of pixels per row of bigger image
+	int COL = im1->cols;
+	// Number of pixels per row of smaller image
+	int col = imOut->cols;
+	// Does im1 have an odd # of cols?
+	int odd;
+	if (COL % 2 != 0) {
+		odd = 1;
+	} else {
+		odd = 0;
+	}
+	// Obtaining four pixels
+	Pixel p1 = im1->data[2 * i + (i / col) * COL + (i / col) * odd];
+	Pixel p2 = im1->data[2 * i + 1 + (i / col) * COL + (i / col) * odd];
+	Pixel p3 = im1->data[2 * i + COL + (i / col) * COL + (i / col) * odd];
+	Pixel p4 = im1->data[2 * i + COL + 1 + (i / col) * COL + (i / col) * odd];
+	
+	// Calculating averages
+	Pixel shrunk;
+	shrunk.r = (p1.r + p2.r + p3.r + p4.r) / 4;
+	shrunk.g = (p1.g + p2.g + p3.g + p4.g) / 4;
+	shrunk.b = (p1.b + p2.b + p3.b + p4.b) / 4;
+
+	// Placing in shrunken pixel
+	imOut->data[i] = shrunk;
+}
+
 
 /**
  *
  **/
 Image * zoom_out(Image * im) {
-
-  return NULL; // TODO remove stub
+	// Creating new image
+	Image * imOut = create_image((im->cols / 2), (im->rows / 2));
+	// Checking for success
+	if (imOut == NULL) {
+		return NULL;
+	}
+	// Shrinking pixels
+	for (int i = 0; i < imOut->cols * imOut->rows; i++) {
+		// Creating shrunken pixel
+		shrink_pixel(im, imOut, i);
+	}
+	// Returning image
+	return imOut;
 }
 
 /**
@@ -173,15 +235,80 @@ int index_converter(int row, int column, int num_cols) {
 	return row_only_index;
 }
 
+int to_x_coord(int i, int num_cols) {
+	// Finding x coord
+	return i % num_cols;
+}
+
+int to_y_coord(int i, int num_cols) {
+	// Finding y coord
+	return i / num_cols;
+}
+
+int coord_to_index(int x, int y, int num_cols) {
+	// Calculating index
+	return (y * num_cols) + x;
+}
+
+double calc_alpha(int x, int y, int cX, int cY, int s) {
+	// Calculating alpha
+	return (double) (sqrt(pow(x - cX, 2.0) + pow(y - cY, 2.0)) / s);
+
+}
+
+void swirl_pixel(Image * imOut, Image * im, int cX, int cY, int s, int index) {
+	// Finding x and y coord of index value
+	int x = to_x_coord(index, im->cols);
+	int y = to_y_coord(index, im->cols);
+	// Calculating alpha
+	double alpha = calc_alpha(x, y, cX, cY, s);
+
+	// Calculating new coordinates
+	// x coord
+	int new_x = (int) ((x - cX) * cos(alpha) - (y - cY) * sin(alpha) + cX);
+	// Checking for valid value
+	// Case: pixel index is out of bounds: thus make pixel black
+	if (new_x < 0 || new_x > im->cols - 1) {
+		imOut->data[index].r = 0;
+		imOut->data[index].g = 0;
+		imOut->data[index].b = 0;
+		return;
+	} 
+	// y coord
+	int new_y = (int) ((x - cX) * sin(alpha) + (y - cY) * cos(alpha) + cY);
+	// Checking for valid value
+	// Case: pixel index is out of bounds: thus make pixel black
+	if (new_y < 0 || new_y > im->rows - 1) {
+		imOut->data[index].r = 0;
+		imOut->data[index].g = 0;
+		imOut->data[index].b = 0;
+		return;
+	} 
+	// Calculating new index
+	int new_index = coord_to_index(new_x, new_y, im->cols);
+
+	// Placing swirled pixel
+	imOut->data[index] = im->data[new_index];
+}
+
 /**
  *
  *
  **/
 
 Image * swirl(Image * im, int col, int row, int scale) {
-
-
-  return NULL; // TODO remove stub
+	// Creating new image
+	Image * imOut = create_image(im->cols, im->rows);
+	// Checking for success
+	if (imOut == NULL) {
+		return NULL;
+	} 
+	// Swirling pixels
+	for (int i = 0; i < im->cols * im->rows; i++) {
+		swirl_pixel(imOut, im, col, row, scale, i);
+	}
+	// Returning swirled image
+	return imOut;
 }
 
 /**
@@ -300,8 +427,7 @@ int process_input(int argc, char* argv[]) {
 	return 1;
   }
 
-  // Attempting to open input file
-  // TODO check if "b" is needed here
+  // Attempting to open input file 
   FILE* input = fopen(argv[1], "rb");
   if (input == NULL) {
 	printf("Error: input file could not be opened.\n");
@@ -433,7 +559,18 @@ int process_operation(int argc, char* argv[], Image * im1) {
 	}
 
 	// TODO calling zoom_in function
-	//*imOut = zoom_in(im1);
+	Image * imOut = zoom_in(im1);
+	if (imOut == NULL) {
+		destroy(im1);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(imOut);
+	if (check != 0) {
+		return check;
+	}
+	return 0;
 
   }
   // Case: zoom_out function 
@@ -444,7 +581,18 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 5;
 	}
 	// TODO calling zoom_out function
-	//*imOut = zoom_out(im1);
+	Image * imOut = zoom_out(im1);
+	if (imOut == NULL) {
+		destroy(im1);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(imOut);
+	if (check != 0) {
+		return check;
+	}
+	return 0;
 
   } 
   // Case: pointilism function
@@ -503,7 +651,19 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 6;
 	} 
 	// TODO calling swirl function
-	//*imOut = swirl(im1, col, row, scale);
+	Image * imOut = swirl(im1, col, row, scale);
+	if (imOut == NULL) {
+		destroy(im1);
+		return 8;
+	}
+	int check = output_image(imOut, argv);
+	destroy(im1);
+	destroy(imOut);
+	if (check != 0) {
+		return check; 
+	}
+	return 0;
+
 
   } 
   // Case: blur function
