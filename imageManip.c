@@ -13,7 +13,7 @@
 #include <string.h>
 #include <math.h>
 #include <assert.h>
-#define PI 3.14
+#define PI 3.14159265359
 
 
 
@@ -64,6 +64,7 @@ Image * alpha_blend(Image * im1, Image * im2, double alpha) {
 	Image * larger_row_image;
 	Image * smaller_col_image;
 	Image * larger_col_image;
+	//Finding relative image sizes to determine how to blend
 	if (im1->rows >= im2->rows) {
 		smaller_row_image = im2;
 		larger_row_image = im1;
@@ -82,8 +83,10 @@ Image * alpha_blend(Image * im1, Image * im2, double alpha) {
 		larger_col_image = im2;
 		imOut->cols = im2->cols;
 	}
+	//Ensuring that images are differentiated
 	assert(larger_col_image != smaller_col_image);
 	assert(larger_row_image != smaller_row_image);
+	//Creating new image based on dimensions of both input images
 	imOut->data = (Pixel *) malloc(sizeof(Pixel) * imOut->rows * imOut->cols);
 	for (int i = 0; i < imOut->rows * imOut->cols; i++) {
 		imOut->data[i].r = 0;
@@ -92,6 +95,7 @@ Image * alpha_blend(Image * im1, Image * im2, double alpha) {
 	}
 	for (int curr_y = 0; curr_y < smaller_row_image->rows; curr_y++) {
 		for (int curr_x = 0; curr_x < smaller_col_image->cols; curr_x++) {
+		//Setting pixel values for areas of overlap between the two images
 		imOut->data[index_converter(curr_y, curr_x, imOut->cols)].r = alpha * im1->data[index_converter(curr_y, curr_x, im1->cols)].r + ((1 - alpha) * im2->data[index_converter(curr_y, curr_x, im2->cols)].r);
 		imOut->data[index_converter(curr_y, curr_x, imOut->cols)].g = alpha * im1->data[index_converter(curr_y, curr_x, im1->cols)].g + ((1 - alpha) * im2->data[index_converter(curr_y, curr_x, im2->cols)].g);
 		imOut->data[index_converter(curr_y, curr_x, imOut->cols)].b = alpha * im1->data[index_converter(curr_y, curr_x, im1->cols)].b + ((1 - alpha) * im2->data[index_converter(curr_y, curr_x, im2->cols)].b);
@@ -100,6 +104,7 @@ Image * alpha_blend(Image * im1, Image * im2, double alpha) {
 	if (smaller_row_image->rows != imOut->rows) {
 		for (int curr_y = smaller_row_image->rows; curr_y < larger_row_image->rows; curr_y++) {
 			for (int curr_x = 0; curr_x < larger_row_image->cols; curr_x++) {
+			//Setting pixel values for rows that don't overlap (y dimension leftover)
 				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].r = larger_row_image->data[index_converter(curr_y, curr_x, larger_row_image->cols)].r;
 				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].g = larger_row_image->data[index_converter(curr_y, curr_x, larger_row_image->cols)].g;
 				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].b = larger_row_image->data[index_converter(curr_y, curr_x, larger_row_image->cols)].b;
@@ -109,6 +114,7 @@ Image * alpha_blend(Image * im1, Image * im2, double alpha) {
 	if (smaller_col_image->cols != imOut->cols) {
 		for (int curr_y = 0; curr_y < larger_col_image->rows; curr_y++) {
 			for (int curr_x = smaller_col_image->cols; curr_x < larger_col_image->cols; curr_x++) {
+			//Setting pixel values for columns that don't overlap (x dimension leftover)
 				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].r = larger_col_image->data[index_converter(curr_y, curr_x, larger_col_image->cols)].r;
 				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].g = larger_col_image->data[index_converter(curr_y, curr_x, larger_col_image->cols)].g;
 				imOut->data[index_converter(curr_y, curr_x, imOut->cols)].b = larger_col_image->data[index_converter(curr_y, curr_x, larger_col_image->cols)].b;
@@ -200,34 +206,39 @@ Image * zoom_out(Image * im) {
  *
  **/
 Image * pointilism(Image * im) {
-	Image * im_out = copy_image(im);
-	int number_of_pixels = im_out->rows * im_out->cols;
+	int number_of_pixels = im->rows * im->cols;
 	int number_pixels_to_change = number_of_pixels * .03;
 	for (int i = 0; i < number_pixels_to_change; i++) {
-		int curr_x = rand() % im_out->cols;
-		int curr_y = rand() % im_out->rows;
+		int curr_x = rand() % im->cols;
+		int curr_y = rand() % im->rows;
 		int curr_radius = rand() % 5 + 1;
 		for (int curr_col = curr_x - curr_radius; curr_col <= curr_x + curr_radius; curr_col++) {
+			//Checks if x coord is out of bounds on either side
 			if (curr_col < 0) {
 				continue;
 			}
-			else if (curr_col > im_out->cols) {
+			else if (curr_col >= im->cols) {
 				break;
 			}
 			for(int curr_row = curr_y - curr_radius; curr_row <= curr_y + curr_radius; curr_row++) {
+				//Checks if y coord is out of bounds on either side
 				if (curr_row < 0) {
 				continue;
 				}
-				else if (curr_row > im_out->rows) {
+				else if (curr_row >= im->rows) {
 					break;
 				}
+				//Checks if pixels is with circle radius from center pixel 
 				else if((pow(curr_col - curr_x, 2) + pow(curr_row - curr_y, 2)) <= pow(curr_radius, 2)) {
-					im_out->data[index_converter(curr_row, curr_col, im_out->cols)] = im_out->data[index_converter(curr_y, curr_x, im_out->cols)];
+					//Changes pixel values to center pixel values
+					im->data[index_converter(curr_row, curr_col, im->cols)].r = im->data[index_converter(curr_y, curr_x, im->cols)].r;
+					im->data[index_converter(curr_row, curr_col, im->cols)].g = im->data[index_converter(curr_y, curr_x, im->cols)].g;
+					im->data[index_converter(curr_row, curr_col, im->cols)].b = im->data[index_converter(curr_y, curr_x, im->cols)].b;
 				}
 			}
 		}
 	}
-  return im_out; 
+  return im; 
 }
 
 int index_converter(int row, int column, int num_cols) {
@@ -320,31 +331,30 @@ Image * blur(Image * im, double radius) {
 	double** general_blur_matrix = generate_gaussian_matrix(radius);
 	int matrix_size = radius / 0.1;
 	int matrix_offset = matrix_size / 2;
+	//Allocates blur matrix to be altered for each pixel
 	double** pixel_matrix = (double**) malloc(sizeof(double *) * matrix_size);
 	for (int i = 0; i < matrix_size; i++) {
 		pixel_matrix[i] = malloc(sizeof(double) * matrix_size);
 	}
+	//Will go through every pixel in the image and create specific pixel blur matrix for each
 	for (int im_y = 0; im_y < im->rows; im_y++) {
 		for (int im_x = 0; im_x < im->cols; im_x++) {
 			//For Red Channel
 			for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
 				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
 					if(im_x - matrix_offset + pixel_x < 0 || im_x - matrix_offset + pixel_x >= im->cols || im_y - matrix_offset + pixel_y < 0 || im_y - matrix_offset + pixel_y >= im->rows) {
+						//If the guassian matrix overlay overhangs the image, the value is set to -1
 						pixel_matrix[pixel_y][pixel_x] = -1;
 					} else {
-					pixel_matrix[pixel_y][pixel_x] = general_blur_matrix[pixel_y][pixel_x] * (im->data[index_converter(im_y - matrix_offset + pixel_y, im_x - matrix_offset + pixel_x, im->cols)].r);
+						//Sets the pixel matrix to the blur coefficient multiplied by the pixel red value
+						//im_x - matrix_offset + pixel_x means that we start from offset (due to placing the center of the guassian matrix on our current pixel)
+						//behind our current pixel image and then increment through the columns of our specific pixel blur matrix
+						pixel_matrix[pixel_y][pixel_x] = general_blur_matrix[pixel_y][pixel_x] * (im->data[index_converter(im_y - matrix_offset + pixel_y, im_x - matrix_offset + pixel_x, im->cols)].r);
 					}
 				}
 			}
 			imOut->data[index_converter(im_y, im_x, imOut->cols)].r = calc_blurry_pixel(pixel_matrix, general_blur_matrix, matrix_size);
-			/*for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
-				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
-					printf("%f ", pixel_matrix[pixel_y][pixel_x]);
-				}
-				printf("\n\n");
-			}
-			printf("\n"); 
-			printf("\n %d \n", calc_blurry_pixel(pixel_matrix, matrix_size)); */
+			
 			//For Green Channel
 			for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
 				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
@@ -393,6 +403,7 @@ double** generate_gaussian_matrix(double sigma) {
 		for (int x = 0; x < size; x++) {
 			int dx = x - (size / 2);
 			int dy = y - (size / 2);
+			//Generates values based on given formula
 			double g = (1.0 / (2.0 * PI * pow(sigma, 2))) * exp( -(pow(dx, 2) + pow(dy, 2)) / (2 * pow(sigma, 2)));
 			guassian_matrix[y][x] = g;
 		}
@@ -410,8 +421,6 @@ int calc_blurry_pixel(double** pixel_blur_matrix, double** general_blur_matrix, 
 			}
 		}
 	}
-	//printf("sum: %f \n", sum);
-	//printf("counter: %f \n", counter);
 	int color_value = sum / weight;
 	return color_value;
 }

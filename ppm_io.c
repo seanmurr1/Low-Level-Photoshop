@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include <string.h>
 #include "ppm_io.h"
+#include "imageManip.h"
 
 
 
