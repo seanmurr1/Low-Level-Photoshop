@@ -210,6 +210,10 @@ int process_input(int argc, char* argv[]) {
 	printf("Failed to supply input filename or output filename, or both.\n");
 	return 1;
   }
+  else if (argc < 4) {
+	  printf("No operation name was specified, or operation name specified was invalid.\n");
+	  return 4;
+  }
 
   // Attempting to open input file 
   FILE* input = fopen(argv[1], "rb");
