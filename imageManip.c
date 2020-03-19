@@ -206,6 +206,7 @@ Image * zoom_out(Image * im) {
  *
  **/
 Image * pointilism(Image * im) {
+	srand(1);
 	int number_of_pixels = im->rows * im->cols;
 	int number_pixels_to_change = number_of_pixels * .03;
 	for (int i = 0; i < number_pixels_to_change; i++) {
@@ -343,7 +344,8 @@ Image * blur(Image * im, double radius) {
 			//For Red Channel
 			for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
 				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
-					if(im_x - matrix_offset + pixel_x < 0 || im_x - matrix_offset + pixel_x >= im->cols || im_y - matrix_offset + pixel_y < 0 || im_y - matrix_offset + pixel_y >= im->rows) {
+					if(im_x - matrix_offset + pixel_x < 0 || im_x - matrix_offset + pixel_x >= im->cols  
+					   || im_y - matrix_offset + pixel_y < 0 || im_y - matrix_offset + pixel_y >= im->rows) {
 						//If the guassian matrix overlay overhangs the image, the value is set to -1
 						pixel_matrix[pixel_y][pixel_x] = -1;
 					} else {
@@ -359,7 +361,8 @@ Image * blur(Image * im, double radius) {
 			//For Green Channel
 			for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
 				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
-					if(im_x - matrix_offset + pixel_x < 0 || im_x - matrix_offset + pixel_x >= im->cols || im_y - matrix_offset + pixel_y < 0 || im_y - matrix_offset + pixel_y >= im->rows) {
+					if(im_x - matrix_offset + pixel_x < 0 || im_x - matrix_offset + pixel_x >= im->cols 
+					   || im_y - matrix_offset + pixel_y < 0 || im_y - matrix_offset + pixel_y >= im->rows) {
 						pixel_matrix[pixel_y][pixel_x] = -1;
 					} else {
 					pixel_matrix[pixel_y][pixel_x] = general_blur_matrix[pixel_y][pixel_x] * (im->data[index_converter(im_y - matrix_offset + pixel_y, im_x - matrix_offset + pixel_x, im->cols)].g);
@@ -371,7 +374,8 @@ Image * blur(Image * im, double radius) {
 			//For Blue Channel
 			for (int pixel_y = 0; pixel_y < matrix_size; pixel_y++) {
 				for (int pixel_x = 0; pixel_x < matrix_size; pixel_x++) {
-					if(im_x - matrix_offset + pixel_x < 0 || im_x - matrix_offset + pixel_x >= im->cols || im_y - matrix_offset + pixel_y < 0 || im_y - matrix_offset + pixel_y >= im->rows) {
+					if(im_x - matrix_offset + pixel_x < 0 || im_x - matrix_offset + pixel_x >= im->cols 
+					   || im_y - matrix_offset + pixel_y < 0 || im_y - matrix_offset + pixel_y >= im->rows) {
 						pixel_matrix[pixel_y][pixel_x] = -1;
 					} else {
 					pixel_matrix[pixel_y][pixel_x] = general_blur_matrix[pixel_y][pixel_x] * (im->data[index_converter(im_y - matrix_offset + pixel_y, im_x - matrix_offset + pixel_x, im->cols)].b);
