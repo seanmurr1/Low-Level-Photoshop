@@ -276,7 +276,7 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 6;
 	}
 	
-	// TODO call exposure function  
+	  
 	Image * imOut = change_exposure(im1, EV);
 	if (imOut == NULL) {
 		destroy(im1);
@@ -321,7 +321,7 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 6;
 	}
 
-	// TODO calling blend function
+	
 	Image* imOut = alpha_blend(im1, im2, alpha);
 	if (imOut == NULL) {
 		destroy(im1);
@@ -346,7 +346,6 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 5;
 	}
 
-	// TODO calling zoom_in function
 	Image * imOut = zoom_in(im1);
 	if (imOut == NULL) {
 		destroy(im1);
@@ -368,7 +367,7 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		printf("Error: incorrect number of arguments for specified operation.\n");
 		return 5;
 	}
-	// TODO calling zoom_out function
+
 	Image * imOut = zoom_out(im1);
 	if (imOut == NULL) {
 		destroy(im1);
@@ -397,7 +396,6 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 8;
 	}
 	int check = output_image(imOut, argv);
-	destroy(im1);
 	destroy(imOut);
 	if (check != 0) {
 		return check; 
@@ -438,7 +436,7 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		printf("Error: invalid arguments for operation.\n");
 		return 6;
 	} 
-	// TODO calling swirl function
+
 	Image * imOut = swirl(im1, col, row, scale);
 	if (imOut == NULL) {
 		destroy(im1);
@@ -467,22 +465,25 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		printf("Error: incorrect kind of arguments for operation.\n");
 		return 5;
 	}
-	// Checking for valid radius
-	// TODO check for valid radius/sigma
-	
-	// TODO calling blur function
-	Image* imOut = blur(im1, radius);
-	if (imOut == NULL) {
+	// Checking for valid radius (radius is divisible by 0.1)
+	if (radius >=0) {
+		Image* imOut = blur(im1, radius);
+		if (imOut == NULL) {
+			destroy(im1);
+			return 8;
+		}
+		int check = output_image(imOut, argv);
 		destroy(im1);
-		return 8;
+		destroy(imOut);
+		if (check != 0) {
+			return check; 
+		}
+		return 0;
+	} else {
+		printf("Error: incorrect kind of arguments for operation.\n");
+		return 5;
 	}
-	int check = output_image(imOut, argv);
-	destroy(im1);
-	destroy(imOut);
-	if (check != 0) {
-		return check; 
-	}
-	return 0;
+	
  
   }
   // Case: invalid operation name
