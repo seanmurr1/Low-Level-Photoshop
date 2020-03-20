@@ -465,7 +465,7 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		printf("Error: incorrect kind of arguments for operation.\n");
 		return 5;
 	}
-	// Checking for valid radius (radius is divisible by 0.1)
+	// Checking for valid radius 
 	if (radius >=0) {
 		Image* imOut = blur(im1, radius);
 		if (imOut == NULL) {

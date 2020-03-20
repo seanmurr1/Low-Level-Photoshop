@@ -330,8 +330,11 @@ Image * swirl(Image * im, int col, int row, int scale) {
  **/
 Image * blur(Image * im, double radius) {
 	Image * imOut = copy_image(im);
-	double** general_blur_matrix = generate_gaussian_matrix(radius);
 	int matrix_size = radius / 0.1;
+	if (matrix_size % 2 == 0) {
+		matrix_size += 1;
+	}
+	double** general_blur_matrix = generate_gaussian_matrix(radius);
 	int matrix_offset = matrix_size / 2;
 	//Allocates blur matrix to be altered for each pixel
 	double** pixel_matrix = (double**) malloc(sizeof(double *) * matrix_size);
@@ -400,6 +403,9 @@ Image * blur(Image * im, double radius) {
 
 double** generate_gaussian_matrix(double sigma) {
 	int size = sigma / 0.1;
+	if (size % 2 == 0) {
+		size += 1;
+	}
 	double** guassian_matrix = (double**) malloc(sizeof(double *) * size);
 	for (int i = 0; i < size; i++) {
 		guassian_matrix[i] = malloc(sizeof(double) * size);
