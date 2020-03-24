@@ -26,30 +26,24 @@ Image * read_ppm(FILE *fp) {
   // check that fp is not NULL
   assert(fp); 
   // Tag
-  char tag1;
-  char tag2;
-  // Taking in Tag
   char* tag = (char*) malloc(sizeof(char));
   size_t size = sizeof(char);
+  // Taking in Tag
   getline(&tag, &size, fp);
-  for (int i = 0; i < strlen(tag); i++) {
-	  printf("%c", tag[i]);
-	  printf("test");
-  }
-  if (strcmp("P6\n", tag) != 0) {
-  //fscanf(fp, "%c%c", &tag1, &tag2);
   // Checking for proper PPM tag
-  //if (!(tag1 == 'P' && tag2 == '6')) {
+  if (strcmp("P6\n", tag) != 0) {
 	fprintf(stderr, "Error: invalid PPM file.\n");
+	free(tag);
 	return NULL;
   }
+  free(tag);
  
   int row;
   int col;
   int colors;
   char input;
 
-  // Taking in newline char and #col
+  // Taking in #col
   // If this fails, then there is a comment
   if (fscanf(fp, "%d", &col) != 1) {
 	// Iterating through comment
