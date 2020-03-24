@@ -32,7 +32,7 @@ Image * read_ppm(FILE *fp) {
   char* tag = (char*) malloc(sizeof(char));
   unsigned char size = sizeof(char);
   getline(&tag, &size, fp);
-  if (strcmp("p6\n", tag) != 0) {
+  if (strcmp("P6\n", tag) != 0) {
   //fscanf(fp, "%c%c", &tag1, &tag2);
   // Checking for proper PPM tag
   //if (!(tag1 == 'P' && tag2 == '6')) {
