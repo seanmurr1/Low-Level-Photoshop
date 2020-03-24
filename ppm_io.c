@@ -29,9 +29,13 @@ Image * read_ppm(FILE *fp) {
   char tag1;
   char tag2;
   // Taking in Tag
-  fscanf(fp, "%c%c", &tag1, &tag2);
+  char* tag = (char*) malloc(sizeof(char));
+  unsigned char size = sizeof(char);
+  getline(&tag, &size, fp);
+  if (strcmp("p6\n", tag) != 0) {
+  //fscanf(fp, "%c%c", &tag1, &tag2);
   // Checking for proper PPM tag
-  if (!(tag1 == 'P' && tag2 == '6')) {
+  //if (!(tag1 == 'P' && tag2 == '6')) {
 	fprintf(stderr, "Error: invalid PPM file.\n");
 	return NULL;
   }
@@ -463,7 +467,7 @@ int process_operation(int argc, char* argv[], Image * im1) {
 	double radius;
 	if (sscanf(argv[4], "%lf", &radius) != 1) {
 		printf("Error: incorrect kind of arguments for operation.\n");
-		return 5;
+		return 6;
 	}
 	// Checking for valid radius 
 	if (radius >=0) {
@@ -480,8 +484,8 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		}
 		return 0;
 	} else {
-		printf("Error: incorrect kind of arguments for operation.\n");
-		return 5;
+		printf("Error: Invalid arguments for operation.\n");
+		return 6;
 	}
 	
  
