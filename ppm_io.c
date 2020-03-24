@@ -30,8 +30,12 @@ Image * read_ppm(FILE *fp) {
   char tag2;
   // Taking in Tag
   char* tag = (char*) malloc(sizeof(char));
-  unsigned char size = sizeof(char);
+  size_t size = sizeof(char);
   getline(&tag, &size, fp);
+  for (int i = 0; i < strlen(tag); i++) {
+	  printf("%c", tag[i]);
+	  printf("test");
+  }
   if (strcmp("P6\n", tag) != 0) {
   //fscanf(fp, "%c%c", &tag1, &tag2);
   // Checking for proper PPM tag
@@ -47,7 +51,7 @@ Image * read_ppm(FILE *fp) {
 
   // Taking in newline char and #col
   // If this fails, then there is a comment
-  if (fscanf(fp, "%c%d", &input, &col) != 2) {
+  if (fscanf(fp, "%d", &col) != 1) {
 	// Iterating through comment
 	do {
 		fscanf(fp, "%c", &input);
