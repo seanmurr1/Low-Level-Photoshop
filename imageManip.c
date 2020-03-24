@@ -209,10 +209,13 @@ Image * pointilism(Image * im) {
 	srand(1);
 	int number_of_pixels = im->rows * im->cols;
 	int number_pixels_to_change = number_of_pixels * .03;
+		int curr_x = 0;
+		int curr_y = 0;
+		int curr_radius = 0;
 	for (int i = 0; i < number_pixels_to_change; i++) {
-		int curr_x = rand() % im->cols;
-		int curr_y = rand() % im->rows;
-		int curr_radius = rand() % 5 + 1;
+		curr_x = rand() % im->cols;
+		curr_y = rand() % im->rows;
+		curr_radius = rand() % 5 + 1;
 		//Checks diameter sized square around each central pixel
 		for (int curr_col = curr_x - curr_radius; curr_col <= curr_x + curr_radius; curr_col++) {
 			//Checks if x coord is out of bounds on either side
