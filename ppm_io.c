@@ -470,7 +470,7 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 6;
 	}
 	// Checking for valid radius 
-	if (radius >=0) {
+	if (radius > 0) {
 		Image* imOut = blur(im1, radius);
 		if (imOut == NULL) {
 			destroy(im1);
