@@ -1,0 +1,23 @@
+Daniel Weber
+JHED: dweber11
+
+Sean Murray
+JHED: smurra42
+
+This project is a simplified command line driven version of photoshop. By making different commmands from the command prompt, you can manipulate your image in a 
+multitude of ways. The functionality included in this program is the following: 1) Change Exposure 2) Image Blending 3) Zoom Out 4) Zoom In 5) Swirl 6) Pointilism
+7) Image Blurring. Most of these functions give you additional control through user-defined paramaters. The program was built to handle files of type .ppm.
+
+In general, the program is interfaced with by entering the following into the command prompt.
+
+"Program file name" "Input image name" "Output file name" "Function name" ("Additional paramaters")
+
+The functions take the following paramaters.
+
+1) Exposure - EV value (between -3 and 3)
+2) Blend - Second image file name (this is the image that the initial image will be blended with), blend ratio (between 0 and 1)
+3) Zoom In - No additional paramaters. Will result in 4x zoom.
+4) Zoom out - No additional parameters. Will result in 0.25x zoom.
+5) Swirl - X coordinate of swirl center, Y coordinate of swirl center, Swirl Strength >= 0
+6) Pointilism - No additional paramaters. 
+7) Blur - Blur Strength >= 0 
