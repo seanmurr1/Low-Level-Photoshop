@@ -69,7 +69,8 @@ Image * change_exposure(Image * im, double EV) {
 }
 
 /*
- *
+ * Blends the two images based on a given value of alpha which determines the blur ratio.
+ * Return pointer to new image struct.
  */
 Image * alpha_blend(Image * im1, Image * im2, double alpha) {
 	Image * imOut = (Image *) malloc(sizeof(Image));
@@ -218,7 +219,8 @@ Image * zoom_out(Image * im) {
 }
 
 /*
- *
+ * Applies pointilism effect on an image on a random selection of 3% of the pixels in the image.
+ * Returns pointer to new altered image.
  */
 Image * pointilism(Image * im) {
 	srand(1);
@@ -262,7 +264,7 @@ Image * pointilism(Image * im) {
 }
 
 /*
- *
+ * Converts from 2d coordinates to 1d array location
  */
 int index_converter(int row, int column, int num_cols) {
 	int row_only_index = row*num_cols + column;
@@ -355,7 +357,8 @@ Image * swirl(Image * im, int col, int row, int scale) {
 }
 
 /*
- *
+ * Applies a Gaussian blur filter to the image. Strength of the blur is determined by the sigma value entered by the user.
+ * Returns pointer to new blurred image.
  */
 Image * blur(Image * im, double radius) {
 	Image * imOut = copy_image(im);
@@ -430,7 +433,8 @@ Image * blur(Image * im, double radius) {
 }
 
 /*
- *
+ * Generates a gaussian blur matrix based on the inputted value of sigma.
+ * Returns pointer to 2d blur matrix.
  */
 double** generate_gaussian_matrix(double sigma) {
 	int size = sigma / 0.1;
@@ -454,7 +458,8 @@ double** generate_gaussian_matrix(double sigma) {
 }
 
 /*
- *
+ * Calculates the value of the specific pixel being blurred for an arbitrary color channel.
+ * Returns the value of blurry pixel value for the specific color channel.
  */
 int calc_blurry_pixel(double** pixel_blur_matrix, double** general_blur_matrix, int size) {
 	double sum = 0;
