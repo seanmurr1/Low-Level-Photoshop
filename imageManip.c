@@ -4,7 +4,7 @@
 // JHED: dweber11
 //
 // imageManip.c
-//
+
 
 #include "imageManip.h"
 #include "ppm_io.h"
@@ -16,32 +16,43 @@
 #define PI 3.14159265359
 
 
-
+/* Function alters the color channels of a single pixel with corresponding EV value.
+ * Deals with values exceeding maximum.
+ */
 void alter_exposure(Image * im, int index, double EV) {
 	// Modifying each color channel
-	unsigned char r = im->data[index].r * pow(2.0, EV);
-	unsigned char g = im->data[index].g * pow(2.0, EV);
-	unsigned char b = im->data[index].b * pow(2.0, EV);
+	int r = im->data[index].r * pow(2.0, EV);
+	int g = im->data[index].g * pow(2.0, EV);
+	int b = im->data[index].b * pow(2.0, EV);
 	// Checking if value exceeds maximum
-	if (EV > 0 ) {
-		if (r < im->data[index].r) {
-			r = 255;
-		}
-		if (g < im->data[index].g) {
-			g = 255;
-		}
-		if (b < im->data[index].b) {
-			b = 255;
-		}
+	// Red channel
+	if (r > 255) {
+		r = 255;
+	} else if (r < 0) {
+		r = 0;
 	}
+	// Blue channel
+	if (b > 255) {
+		b = 255;
+	} else if (b < 0) {
+		b = 0;
+	}
+	//Green channel
+	if (g > 255) {
+		g = 255;
+	} else if (g < 0) {
+		g = 0;
+	}	
+
 	// Updating data
 	im->data[index].r = r;
 	im->data[index].g = g;
 	im->data[index].b = b;
 }
-/**
- *
- **/
+
+/* Changes the exposure of all pixels of a given image with corresponding EV value.
+ * Returns pointer to new altered image.
+ */
 Image * change_exposure(Image * im, double EV) {
 	// Copying image
 	Image * imOut = copy_image(im);
@@ -49,15 +60,17 @@ Image * change_exposure(Image * im, double EV) {
 	if (imOut == NULL) {
 		return NULL;
 	}	
+	// Changing exposure of pixels
 	for (int i = 0; i < imOut->rows * imOut->cols; i++) {
 		alter_exposure(imOut, i, EV);
 	}
+  // Returning image
   return imOut;
 }
 
-/**
+/*
  *
- **/
+ */
 Image * alpha_blend(Image * im1, Image * im2, double alpha) {
 	Image * imOut = (Image *) malloc(sizeof(Image));
 	Image * smaller_row_image;
@@ -121,10 +134,11 @@ Image * alpha_blend(Image * im1, Image * im2, double alpha) {
 			}
 		}
 	}
-  return imOut; // TODO remove stub
+  return imOut;
 }
 
-
+/* Copies a pixel into surrounding 2x2 square with the same color channgel values.
+ */
 void expand_pixel(Image * im1, Image * imOut, int index) {
 	// Number of pixels per row
 	int col = im1->cols;
@@ -135,10 +149,9 @@ void expand_pixel(Image * im1, Image * imOut, int index) {
 	imOut->data[2 * index + 2 * col + 1 + (index / col) * 2 * col] = im1->data[index];
 }
 
-
-/**
- *
- **/
+/* Expands all pixels in an image to a 2x2 square, thus zooming in.
+ * Returns pointer to new altered image.
+ */
 Image * zoom_in(Image * im) {
 	// Creating new image
 	Image * imOut = create_image((im->cols * 2), (im->rows * 2));
@@ -154,6 +167,9 @@ Image * zoom_in(Image * im) {
 	return imOut;
 }
 
+/* Takes average color channel values of 2x2 square corresponding to larger image
+ * and places this averaged pixel at index i in smaller image.
+ */
 void shrink_pixel(Image * im1, Image * imOut, int i) {
 	// Number of pixels per row of bigger image
 	int COL = im1->cols;
@@ -182,10 +198,9 @@ void shrink_pixel(Image * im1, Image * imOut, int i) {
 	imOut->data[i] = shrunk;
 }
 
-
-/**
- *
- **/
+/* Shrinks 2x2 squares of pixels in original image to averaged 1x1 pixels in zoomed out image.
+ * Returns pointer to new altered image.
+ */
 Image * zoom_out(Image * im) {
 	// Creating new image
 	Image * imOut = create_image((im->cols / 2), (im->rows / 2));
@@ -202,9 +217,9 @@ Image * zoom_out(Image * im) {
 	return imOut;
 }
 
-/**
+/*
  *
- **/
+ */
 Image * pointilism(Image * im) {
 	srand(1);
 	int number_of_pixels = im->rows * im->cols;
@@ -246,32 +261,46 @@ Image * pointilism(Image * im) {
   return im; 
 }
 
+/*
+ *
+ */
 int index_converter(int row, int column, int num_cols) {
 	int row_only_index = row*num_cols + column;
 	return row_only_index;
 }
 
+/* Converts index into x-coordinate given # columns in image.
+ */
 int to_x_coord(int i, int num_cols) {
 	// Finding x coord
 	return i % num_cols;
 }
 
+/* Converts index into y-coordinate given # columns in image. 
+ */
 int to_y_coord(int i, int num_cols) {
 	// Finding y coord
 	return i / num_cols;
 }
 
+/* Converts (x,y) into an index value given # columns in image.
+ */
 int coord_to_index(int x, int y, int num_cols) {
 	// Calculating index
 	return (y * num_cols) + x;
 }
 
+/* Calculuates alpha value for swirl function.
+ */
 double calc_alpha(int x, int y, int cX, int cY, int s) {
 	// Calculating alpha
 	return (double) (sqrt(pow(x - cX, 2.0) + pow(y - cY, 2.0)) / s);
 
 }
 
+/* Performs swirl transformation on a given pixel.
+ * If new coordinates are out of bounds, pixel is set to be black.
+ */
 void swirl_pixel(Image * imOut, Image * im, int cX, int cY, int s, int index) {
 	// Finding x and y coord of index value
 	int x = to_x_coord(index, im->cols);
@@ -307,11 +336,9 @@ void swirl_pixel(Image * imOut, Image * im, int cX, int cY, int s, int index) {
 	imOut->data[index] = im->data[new_index];
 }
 
-/**
- *
- *
- **/
-
+/* Performs swirl transformation of given image with given scale and center.
+ * Returns pointer to new altered image.
+ */
 Image * swirl(Image * im, int col, int row, int scale) {
 	// Creating new image
 	Image * imOut = create_image(im->cols, im->rows);
@@ -327,10 +354,9 @@ Image * swirl(Image * im, int col, int row, int scale) {
 	return imOut;
 }
 
-/**
+/*
  *
- *
- **/
+ */
 Image * blur(Image * im, double radius) {
 	Image * imOut = copy_image(im);
 	int matrix_size = radius / 0.1;
@@ -403,7 +429,9 @@ Image * blur(Image * im, double radius) {
   return imOut; 
 }
 
-
+/*
+ *
+ */
 double** generate_gaussian_matrix(double sigma) {
 	int size = sigma / 0.1;
 	if (size % 2 == 0) {
@@ -424,6 +452,10 @@ double** generate_gaussian_matrix(double sigma) {
 	}
 	return guassian_matrix;
 }
+
+/*
+ *
+ */
 int calc_blurry_pixel(double** pixel_blur_matrix, double** general_blur_matrix, int size) {
 	double sum = 0;
 	double weight = 0;

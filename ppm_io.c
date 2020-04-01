@@ -1,4 +1,3 @@
-
 // Sean Murray
 // JHED: smurra42
 // Daniel Weber
@@ -6,7 +5,7 @@
 //
 // ppm_io.c
 // 601.220, Spring 2019
-//
+
 
 #include <assert.h>
 #include <stdlib.h>
@@ -123,6 +122,9 @@ int write_ppm(FILE *fp, const Image *im) {
   return num_pixels_written;
 }
 
+/* Copies a given image. New image is located on heap with exact values of old image.
+ * Returns pointer to copied image.
+ */
 Image * copy_image(Image * im) {
 	// Allocating space for new Image
 	Image * imOut = (Image *) malloc(sizeof(Image));
@@ -148,9 +150,11 @@ Image * copy_image(Image * im) {
 	}
 	// Returning copied image
 	return imOut;
-
 }
 
+/* Outputs given image to ppm file with corresponding output file name from argv.
+ * Returns corresponding error value (0 if no errors).
+ */
 int output_image(Image * im, char* argv[]) {
 	// Attempting to open output file
 	FILE* output = fopen(argv[2], "wb");
@@ -160,25 +164,29 @@ int output_image(Image * im, char* argv[]) {
 	}
 	// Writing output image
 	int num_pixels_written = write_ppm(output, im);
+	// Checking for errors
 	if (num_pixels_written != im->cols * im->rows) {
 		fprintf(stderr, "Error: writing output failed.\n");
 		fclose(output);
 		return 7;
 	}
 	
-	//TODO do we need more file checks here (ferror?)
+	// Closing file
 	fclose(output);
 	
 	return 0;
 }
 
-
+/* Frees a given image (first freeing its data).
+ */
 void destroy(Image * im) {
 	free(im->data);
 	free(im);
 }
 
-
+/* Creates an image located on the heap with inputted dimensions
+ * Returns pointer to created image.
+ */
 Image * create_image(int cols, int rows) {
 	// Creating space for image
 	Image * im = (Image *) malloc(sizeof(Image));
@@ -201,10 +209,10 @@ Image * create_image(int cols, int rows) {
 	return im;
 }
 
-/**
- * Processes command-line arguments and handles errors. 
- *
- **/
+/* Processes command-line arguments and handles errors.
+ * Opens and reads input image and then processes given operation.
+ * Returns error value. 
+ */
 int process_input(int argc, char* argv[]) {
 
   // Checking if input and output filenames exist
@@ -238,21 +246,15 @@ int process_input(int argc, char* argv[]) {
   // Case: error detected
   if (check != 0) {
 	// Returning proper error value
-	// TODO free imOut and im1 and others if needed
 	return check;
-  } 
- 
-  // TODO free images here
+  }
 
 return 0;
 }
 
-
-
-/**
- * Processes given operation and errors, if any.
- *
- **/
+/* Processes given operation and errors, if any.
+ * Returns error value.
+ */
 int process_operation(int argc, char* argv[], Image * im1) {
 
   // Case: exposure function
@@ -271,22 +273,25 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 5;
 	}
 	// Checking for proper range of EV value
-	// TODO do we need epsilon value to compare doubles?
 	if (EV > 3 || EV < -3) {
 		printf("Error: invalid arguments for operation.\n ");
 		destroy(im1);
 		return 6;
 	}
 	
-	  
+	// Changing exposure  
 	Image * imOut = change_exposure(im1, EV);
+	// Checking for errors
 	if (imOut == NULL) {
 		destroy(im1);
 		return 8;
 	}
+	// Outputting image
 	int check = output_image(imOut, argv);
+	// Freeing memory
 	destroy(im1);
 	destroy(imOut);
+	// Checking for errors
 	if (check != 0) {
 		return check; 
 	}
@@ -323,17 +328,21 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 6;
 	}
 
-	
+	// Blending images
 	Image* imOut = alpha_blend(im1, im2, alpha);
+	// Checking for errors
 	if (imOut == NULL) {
 		destroy(im1);
 		destroy(im2);
 		return 8;
 	}
+	// Outputting image
 	int check = output_image(imOut, argv);
+	// Freeing memory
 	destroy(im1);
 	destroy(im2);
 	destroy(imOut);
+	// Checking for errors
 	if (check != 0) {
 		return check; 
 	}
@@ -347,15 +356,19 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		printf("Error: incorrect number of arguments for specified operation.\n");
 		return 5;
 	}
-
+	// Performing function
 	Image * imOut = zoom_in(im1);
+	// Checking for errors
 	if (imOut == NULL) {
 		destroy(im1);
 		return 8;
 	}
+	// Outputting image
 	int check = output_image(imOut, argv);
+	// Freeing memory
 	destroy(im1);
 	destroy(imOut);
+	// Checking for errors
 	if (check != 0) {
 		return check;
 	}
@@ -364,20 +377,24 @@ int process_operation(int argc, char* argv[], Image * im1) {
   }
   // Case: zoom_out function 
   else if (strcmp(argv[3], "zoom_out") == 0) {
-	// Checkign for proper # of args
+	// Checking for proper # of args
 	if (argc != 4) {
 		printf("Error: incorrect number of arguments for specified operation.\n");
 		return 5;
 	}
-
+	// Performing function
 	Image * imOut = zoom_out(im1);
+	// Checking for errors
 	if (imOut == NULL) {
 		destroy(im1);
 		return 8;
 	}
+	// Outputting image
 	int check = output_image(imOut, argv);
+	// Freeing memory
 	destroy(im1);
 	destroy(imOut);
+	// Checking for errors
 	if (check != 0) {
 		return check;
 	}
@@ -391,14 +408,19 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		printf("Error: incorrect number of arguments for specified operation.\n");
 		return 5;
 	}
-	// TODO calling pointilism function
+	// Calling pointilism function
 	Image* imOut = pointilism(im1);
+	// Checking for errors
 	if (imOut == NULL) {
 		destroy(im1);
 		return 8;
 	}
+	// Outputting image
 	int check = output_image(imOut, argv);
-	destroy(imOut);
+	// Freeing memory
+	destroy(im1);
+	// Only need to destroy im1 as im1 and imOut point to same image	
+	// Checking for errors
 	if (check != 0) {
 		return check; 
 	}
@@ -423,7 +445,7 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		return 5;
 	}
 	// Checking for valid coordinates
-	if (col < 0 || col > im1->cols || row < 0 || row > im1->rows) {
+	if (col < 0 || col > im1->cols - 1 || row < 0 || row > im1->rows - 1) {
 		printf("Error: invalid arguments for operation.\n");
 		return 6;
 	}
@@ -438,15 +460,19 @@ int process_operation(int argc, char* argv[], Image * im1) {
 		printf("Error: invalid arguments for operation.\n");
 		return 6;
 	} 
-
+	// Performing swirl function
 	Image * imOut = swirl(im1, col, row, scale);
+	// Checking for errors
 	if (imOut == NULL) {
 		destroy(im1);
 		return 8;
 	}
+	// Outputting image
 	int check = output_image(imOut, argv);
+	// Freeing memory
 	destroy(im1);
 	destroy(imOut);
+	// Checking for errors
 	if (check != 0) {
 		return check; 
 	}
@@ -469,14 +495,19 @@ int process_operation(int argc, char* argv[], Image * im1) {
 	}
 	// Checking for valid radius 
 	if (radius > 0) {
+		// Blurring
 		Image* imOut = blur(im1, radius);
+		// Checking for errors
 		if (imOut == NULL) {
 			destroy(im1);
 			return 8;
 		}
+		// Outputting image
 		int check = output_image(imOut, argv);
+		// Freeing memory
 		destroy(im1);
 		destroy(imOut);
+		// Checking for errors
 		if (check != 0) {
 			return check; 
 		}
@@ -491,6 +522,7 @@ int process_operation(int argc, char* argv[], Image * im1) {
   // Case: invalid operation name
   else {
 	printf("Error: no operation name specified or operation name specified was invalid.\n");
+	destroy(im1);
 	return 4;
   }
 
